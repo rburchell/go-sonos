@@ -168,7 +168,7 @@ func (s *Service) GetMute(httpClient *http.Client, args *GetMuteArgs) (*GetMuteR
 		return nil, err
 	}
 	if r.Body.GetMute == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetMute()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetMute()`)
 	}
 
 	return r.Body.GetMute, nil
@@ -199,7 +199,7 @@ func (s *Service) SetMute(httpClient *http.Client, args *SetMuteArgs) (*SetMuteR
 		return nil, err
 	}
 	if r.Body.SetMute == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetMute()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetMute()`)
 	}
 
 	return r.Body.SetMute, nil
@@ -229,7 +229,7 @@ func (s *Service) ResetBasicEQ(httpClient *http.Client, args *ResetBasicEQArgs) 
 		return nil, err
 	}
 	if r.Body.ResetBasicEQ == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.ResetBasicEQ()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.ResetBasicEQ()`)
 	}
 
 	return r.Body.ResetBasicEQ, nil
@@ -255,7 +255,7 @@ func (s *Service) ResetExtEQ(httpClient *http.Client, args *ResetExtEQArgs) (*Re
 		return nil, err
 	}
 	if r.Body.ResetExtEQ == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.ResetExtEQ()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.ResetExtEQ()`)
 	}
 
 	return r.Body.ResetExtEQ, nil
@@ -285,7 +285,7 @@ func (s *Service) GetVolume(httpClient *http.Client, args *GetVolumeArgs) (*GetV
 		return nil, err
 	}
 	if r.Body.GetVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetVolume()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetVolume()`)
 	}
 
 	return r.Body.GetVolume, nil
@@ -316,7 +316,7 @@ func (s *Service) SetVolume(httpClient *http.Client, args *SetVolumeArgs) (*SetV
 		return nil, err
 	}
 	if r.Body.SetVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetVolume()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetVolume()`)
 	}
 
 	return r.Body.SetVolume, nil
@@ -347,7 +347,7 @@ func (s *Service) SetRelativeVolume(httpClient *http.Client, args *SetRelativeVo
 		return nil, err
 	}
 	if r.Body.SetRelativeVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetRelativeVolume()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetRelativeVolume()`)
 	}
 
 	return r.Body.SetRelativeVolume, nil
@@ -377,7 +377,7 @@ func (s *Service) GetVolumeDB(httpClient *http.Client, args *GetVolumeDBArgs) (*
 		return nil, err
 	}
 	if r.Body.GetVolumeDB == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetVolumeDB()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetVolumeDB()`)
 	}
 
 	return r.Body.GetVolumeDB, nil
@@ -407,7 +407,7 @@ func (s *Service) SetVolumeDB(httpClient *http.Client, args *SetVolumeDBArgs) (*
 		return nil, err
 	}
 	if r.Body.SetVolumeDB == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetVolumeDB()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetVolumeDB()`)
 	}
 
 	return r.Body.SetVolumeDB, nil
@@ -438,7 +438,7 @@ func (s *Service) GetVolumeDBRange(httpClient *http.Client, args *GetVolumeDBRan
 		return nil, err
 	}
 	if r.Body.GetVolumeDBRange == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetVolumeDBRange()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetVolumeDBRange()`)
 	}
 
 	return r.Body.GetVolumeDBRange, nil
@@ -464,7 +464,7 @@ func (s *Service) GetBass(httpClient *http.Client, args *GetBassArgs) (*GetBassR
 		return nil, err
 	}
 	if r.Body.GetBass == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetBass()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetBass()`)
 	}
 
 	return r.Body.GetBass, nil
@@ -491,7 +491,7 @@ func (s *Service) SetBass(httpClient *http.Client, args *SetBassArgs) (*SetBassR
 		return nil, err
 	}
 	if r.Body.SetBass == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetBass()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetBass()`)
 	}
 
 	return r.Body.SetBass, nil
@@ -517,7 +517,7 @@ func (s *Service) GetTreble(httpClient *http.Client, args *GetTrebleArgs) (*GetT
 		return nil, err
 	}
 	if r.Body.GetTreble == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetTreble()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetTreble()`)
 	}
 
 	return r.Body.GetTreble, nil
@@ -544,7 +544,7 @@ func (s *Service) SetTreble(httpClient *http.Client, args *SetTrebleArgs) (*SetT
 		return nil, err
 	}
 	if r.Body.SetTreble == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetTreble()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetTreble()`)
 	}
 
 	return r.Body.SetTreble, nil
@@ -571,7 +571,7 @@ func (s *Service) GetEQ(httpClient *http.Client, args *GetEQArgs) (*GetEQRespons
 		return nil, err
 	}
 	if r.Body.GetEQ == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetEQ()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetEQ()`)
 	}
 
 	return r.Body.GetEQ, nil
@@ -598,7 +598,7 @@ func (s *Service) SetEQ(httpClient *http.Client, args *SetEQArgs) (*SetEQRespons
 		return nil, err
 	}
 	if r.Body.SetEQ == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetEQ()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetEQ()`)
 	}
 
 	return r.Body.SetEQ, nil
@@ -628,7 +628,7 @@ func (s *Service) GetLoudness(httpClient *http.Client, args *GetLoudnessArgs) (*
 		return nil, err
 	}
 	if r.Body.GetLoudness == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetLoudness()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetLoudness()`)
 	}
 
 	return r.Body.GetLoudness, nil
@@ -658,7 +658,7 @@ func (s *Service) SetLoudness(httpClient *http.Client, args *SetLoudnessArgs) (*
 		return nil, err
 	}
 	if r.Body.SetLoudness == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetLoudness()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetLoudness()`)
 	}
 
 	return r.Body.SetLoudness, nil
@@ -684,7 +684,7 @@ func (s *Service) GetSupportsOutputFixed(httpClient *http.Client, args *GetSuppo
 		return nil, err
 	}
 	if r.Body.GetSupportsOutputFixed == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetSupportsOutputFixed()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetSupportsOutputFixed()`)
 	}
 
 	return r.Body.GetSupportsOutputFixed, nil
@@ -710,7 +710,7 @@ func (s *Service) GetOutputFixed(httpClient *http.Client, args *GetOutputFixedAr
 		return nil, err
 	}
 	if r.Body.GetOutputFixed == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetOutputFixed()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetOutputFixed()`)
 	}
 
 	return r.Body.GetOutputFixed, nil
@@ -736,7 +736,7 @@ func (s *Service) SetOutputFixed(httpClient *http.Client, args *SetOutputFixedAr
 		return nil, err
 	}
 	if r.Body.SetOutputFixed == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetOutputFixed()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetOutputFixed()`)
 	}
 
 	return r.Body.SetOutputFixed, nil
@@ -762,7 +762,7 @@ func (s *Service) GetHeadphoneConnected(httpClient *http.Client, args *GetHeadph
 		return nil, err
 	}
 	if r.Body.GetHeadphoneConnected == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetHeadphoneConnected()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetHeadphoneConnected()`)
 	}
 
 	return r.Body.GetHeadphoneConnected, nil
@@ -800,7 +800,7 @@ func (s *Service) RampToVolume(httpClient *http.Client, args *RampToVolumeArgs) 
 		return nil, err
 	}
 	if r.Body.RampToVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.RampToVolume()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.RampToVolume()`)
 	}
 
 	return r.Body.RampToVolume, nil
@@ -829,7 +829,7 @@ func (s *Service) RestoreVolumePriorToRamp(httpClient *http.Client, args *Restor
 		return nil, err
 	}
 	if r.Body.RestoreVolumePriorToRamp == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.RestoreVolumePriorToRamp()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.RestoreVolumePriorToRamp()`)
 	}
 
 	return r.Body.RestoreVolumePriorToRamp, nil
@@ -855,7 +855,7 @@ func (s *Service) SetChannelMap(httpClient *http.Client, args *SetChannelMapArgs
 		return nil, err
 	}
 	if r.Body.SetChannelMap == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetChannelMap()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetChannelMap()`)
 	}
 
 	return r.Body.SetChannelMap, nil
@@ -883,7 +883,7 @@ func (s *Service) SetRoomCalibrationX(httpClient *http.Client, args *SetRoomCali
 		return nil, err
 	}
 	if r.Body.SetRoomCalibrationX == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetRoomCalibrationX()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetRoomCalibrationX()`)
 	}
 
 	return r.Body.SetRoomCalibrationX, nil
@@ -910,7 +910,7 @@ func (s *Service) GetRoomCalibrationStatus(httpClient *http.Client, args *GetRoo
 		return nil, err
 	}
 	if r.Body.GetRoomCalibrationStatus == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.GetRoomCalibrationStatus()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.GetRoomCalibrationStatus()`)
 	}
 
 	return r.Body.GetRoomCalibrationStatus, nil
@@ -936,7 +936,7 @@ func (s *Service) SetRoomCalibrationStatus(httpClient *http.Client, args *SetRoo
 		return nil, err
 	}
 	if r.Body.SetRoomCalibrationStatus == nil {
-		return nil, errors.New(`unexpected respose from service calling renderingcontrol.SetRoomCalibrationStatus()`)
+		return nil, errors.New(`unexpected response from service calling renderingcontrol.SetRoomCalibrationStatus()`)
 	}
 
 	return r.Body.SetRoomCalibrationStatus, nil

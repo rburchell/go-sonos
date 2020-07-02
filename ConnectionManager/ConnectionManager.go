@@ -113,7 +113,7 @@ func (s *Service) GetProtocolInfo(httpClient *http.Client, args *GetProtocolInfo
 		return nil, err
 	}
 	if r.Body.GetProtocolInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling connectionmanager.GetProtocolInfo()`)
+		return nil, errors.New(`unexpected response from service calling connectionmanager.GetProtocolInfo()`)
 	}
 
 	return r.Body.GetProtocolInfo, nil
@@ -138,7 +138,7 @@ func (s *Service) GetCurrentConnectionIDs(httpClient *http.Client, args *GetCurr
 		return nil, err
 	}
 	if r.Body.GetCurrentConnectionIDs == nil {
-		return nil, errors.New(`unexpected respose from service calling connectionmanager.GetCurrentConnectionIDs()`)
+		return nil, errors.New(`unexpected response from service calling connectionmanager.GetCurrentConnectionIDs()`)
 	}
 
 	return r.Body.GetCurrentConnectionIDs, nil
@@ -170,7 +170,7 @@ func (s *Service) GetCurrentConnectionInfo(httpClient *http.Client, args *GetCur
 		return nil, err
 	}
 	if r.Body.GetCurrentConnectionInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling connectionmanager.GetCurrentConnectionInfo()`)
+		return nil, errors.New(`unexpected response from service calling connectionmanager.GetCurrentConnectionInfo()`)
 	}
 
 	return r.Body.GetCurrentConnectionInfo, nil

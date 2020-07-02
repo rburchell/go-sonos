@@ -158,7 +158,7 @@ func (s *Service) SetLEDState(httpClient *http.Client, args *SetLEDStateArgs) (*
 		return nil, err
 	}
 	if r.Body.SetLEDState == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetLEDState()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetLEDState()`)
 	}
 
 	return r.Body.SetLEDState, nil
@@ -183,7 +183,7 @@ func (s *Service) GetLEDState(httpClient *http.Client, args *GetLEDStateArgs) (*
 		return nil, err
 	}
 	if r.Body.GetLEDState == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetLEDState()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetLEDState()`)
 	}
 
 	return r.Body.GetLEDState, nil
@@ -208,7 +208,7 @@ func (s *Service) AddBondedZones(httpClient *http.Client, args *AddBondedZonesAr
 		return nil, err
 	}
 	if r.Body.AddBondedZones == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.AddBondedZones()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.AddBondedZones()`)
 	}
 
 	return r.Body.AddBondedZones, nil
@@ -234,7 +234,7 @@ func (s *Service) RemoveBondedZones(httpClient *http.Client, args *RemoveBondedZ
 		return nil, err
 	}
 	if r.Body.RemoveBondedZones == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.RemoveBondedZones()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.RemoveBondedZones()`)
 	}
 
 	return r.Body.RemoveBondedZones, nil
@@ -259,7 +259,7 @@ func (s *Service) CreateStereoPair(httpClient *http.Client, args *CreateStereoPa
 		return nil, err
 	}
 	if r.Body.CreateStereoPair == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.CreateStereoPair()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.CreateStereoPair()`)
 	}
 
 	return r.Body.CreateStereoPair, nil
@@ -284,7 +284,7 @@ func (s *Service) SeparateStereoPair(httpClient *http.Client, args *SeparateSter
 		return nil, err
 	}
 	if r.Body.SeparateStereoPair == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SeparateStereoPair()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SeparateStereoPair()`)
 	}
 
 	return r.Body.SeparateStereoPair, nil
@@ -311,7 +311,7 @@ func (s *Service) SetZoneAttributes(httpClient *http.Client, args *SetZoneAttrib
 		return nil, err
 	}
 	if r.Body.SetZoneAttributes == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetZoneAttributes()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetZoneAttributes()`)
 	}
 
 	return r.Body.SetZoneAttributes, nil
@@ -338,7 +338,7 @@ func (s *Service) GetZoneAttributes(httpClient *http.Client, args *GetZoneAttrib
 		return nil, err
 	}
 	if r.Body.GetZoneAttributes == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetZoneAttributes()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetZoneAttributes()`)
 	}
 
 	return r.Body.GetZoneAttributes, nil
@@ -363,7 +363,7 @@ func (s *Service) GetHouseholdID(httpClient *http.Client, args *GetHouseholdIDAr
 		return nil, err
 	}
 	if r.Body.GetHouseholdID == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetHouseholdID()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetHouseholdID()`)
 	}
 
 	return r.Body.GetHouseholdID, nil
@@ -397,7 +397,7 @@ func (s *Service) GetZoneInfo(httpClient *http.Client, args *GetZoneInfoArgs) (*
 		return nil, err
 	}
 	if r.Body.GetZoneInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetZoneInfo()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetZoneInfo()`)
 	}
 
 	return r.Body.GetZoneInfo, nil
@@ -423,7 +423,7 @@ func (s *Service) SetAutoplayLinkedZones(httpClient *http.Client, args *SetAutop
 		return nil, err
 	}
 	if r.Body.SetAutoplayLinkedZones == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetAutoplayLinkedZones()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetAutoplayLinkedZones()`)
 	}
 
 	return r.Body.SetAutoplayLinkedZones, nil
@@ -449,7 +449,7 @@ func (s *Service) GetAutoplayLinkedZones(httpClient *http.Client, args *GetAutop
 		return nil, err
 	}
 	if r.Body.GetAutoplayLinkedZones == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetAutoplayLinkedZones()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetAutoplayLinkedZones()`)
 	}
 
 	return r.Body.GetAutoplayLinkedZones, nil
@@ -475,7 +475,7 @@ func (s *Service) SetAutoplayRoomUUID(httpClient *http.Client, args *SetAutoplay
 		return nil, err
 	}
 	if r.Body.SetAutoplayRoomUUID == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetAutoplayRoomUUID()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetAutoplayRoomUUID()`)
 	}
 
 	return r.Body.SetAutoplayRoomUUID, nil
@@ -501,7 +501,7 @@ func (s *Service) GetAutoplayRoomUUID(httpClient *http.Client, args *GetAutoplay
 		return nil, err
 	}
 	if r.Body.GetAutoplayRoomUUID == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetAutoplayRoomUUID()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetAutoplayRoomUUID()`)
 	}
 
 	return r.Body.GetAutoplayRoomUUID, nil
@@ -528,7 +528,7 @@ func (s *Service) SetAutoplayVolume(httpClient *http.Client, args *SetAutoplayVo
 		return nil, err
 	}
 	if r.Body.SetAutoplayVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetAutoplayVolume()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetAutoplayVolume()`)
 	}
 
 	return r.Body.SetAutoplayVolume, nil
@@ -554,7 +554,7 @@ func (s *Service) GetAutoplayVolume(httpClient *http.Client, args *GetAutoplayVo
 		return nil, err
 	}
 	if r.Body.GetAutoplayVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetAutoplayVolume()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetAutoplayVolume()`)
 	}
 
 	return r.Body.GetAutoplayVolume, nil
@@ -580,7 +580,7 @@ func (s *Service) SetUseAutoplayVolume(httpClient *http.Client, args *SetUseAuto
 		return nil, err
 	}
 	if r.Body.SetUseAutoplayVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetUseAutoplayVolume()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetUseAutoplayVolume()`)
 	}
 
 	return r.Body.SetUseAutoplayVolume, nil
@@ -606,7 +606,7 @@ func (s *Service) GetUseAutoplayVolume(httpClient *http.Client, args *GetUseAuto
 		return nil, err
 	}
 	if r.Body.GetUseAutoplayVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetUseAutoplayVolume()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetUseAutoplayVolume()`)
 	}
 
 	return r.Body.GetUseAutoplayVolume, nil
@@ -631,7 +631,7 @@ func (s *Service) AddHTSatellite(httpClient *http.Client, args *AddHTSatelliteAr
 		return nil, err
 	}
 	if r.Body.AddHTSatellite == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.AddHTSatellite()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.AddHTSatellite()`)
 	}
 
 	return r.Body.AddHTSatellite, nil
@@ -656,7 +656,7 @@ func (s *Service) RemoveHTSatellite(httpClient *http.Client, args *RemoveHTSatel
 		return nil, err
 	}
 	if r.Body.RemoveHTSatellite == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.RemoveHTSatellite()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.RemoveHTSatellite()`)
 	}
 
 	return r.Body.RemoveHTSatellite, nil
@@ -683,7 +683,7 @@ func (s *Service) EnterConfigMode(httpClient *http.Client, args *EnterConfigMode
 		return nil, err
 	}
 	if r.Body.EnterConfigMode == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.EnterConfigMode()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.EnterConfigMode()`)
 	}
 
 	return r.Body.EnterConfigMode, nil
@@ -708,7 +708,7 @@ func (s *Service) ExitConfigMode(httpClient *http.Client, args *ExitConfigModeAr
 		return nil, err
 	}
 	if r.Body.ExitConfigMode == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.ExitConfigMode()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.ExitConfigMode()`)
 	}
 
 	return r.Body.ExitConfigMode, nil
@@ -733,7 +733,7 @@ func (s *Service) GetButtonState(httpClient *http.Client, args *GetButtonStateAr
 		return nil, err
 	}
 	if r.Body.GetButtonState == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetButtonState()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetButtonState()`)
 	}
 
 	return r.Body.GetButtonState, nil
@@ -760,7 +760,7 @@ func (s *Service) SetButtonLockState(httpClient *http.Client, args *SetButtonLoc
 		return nil, err
 	}
 	if r.Body.SetButtonLockState == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.SetButtonLockState()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.SetButtonLockState()`)
 	}
 
 	return r.Body.SetButtonLockState, nil
@@ -785,7 +785,7 @@ func (s *Service) GetButtonLockState(httpClient *http.Client, args *GetButtonLoc
 		return nil, err
 	}
 	if r.Body.GetButtonLockState == nil {
-		return nil, errors.New(`unexpected respose from service calling deviceproperties.GetButtonLockState()`)
+		return nil, errors.New(`unexpected response from service calling deviceproperties.GetButtonLockState()`)
 	}
 
 	return r.Body.GetButtonLockState, nil

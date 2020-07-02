@@ -138,7 +138,7 @@ func (s *Service) GetSearchCapabilities(httpClient *http.Client, args *GetSearch
 		return nil, err
 	}
 	if r.Body.GetSearchCapabilities == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetSearchCapabilities()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetSearchCapabilities()`)
 	}
 
 	return r.Body.GetSearchCapabilities, nil
@@ -163,7 +163,7 @@ func (s *Service) GetSortCapabilities(httpClient *http.Client, args *GetSortCapa
 		return nil, err
 	}
 	if r.Body.GetSortCapabilities == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetSortCapabilities()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetSortCapabilities()`)
 	}
 
 	return r.Body.GetSortCapabilities, nil
@@ -188,7 +188,7 @@ func (s *Service) GetSystemUpdateID(httpClient *http.Client, args *GetSystemUpda
 		return nil, err
 	}
 	if r.Body.GetSystemUpdateID == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetSystemUpdateID()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetSystemUpdateID()`)
 	}
 
 	return r.Body.GetSystemUpdateID, nil
@@ -213,7 +213,7 @@ func (s *Service) GetAlbumArtistDisplayOption(httpClient *http.Client, args *Get
 		return nil, err
 	}
 	if r.Body.GetAlbumArtistDisplayOption == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetAlbumArtistDisplayOption()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetAlbumArtistDisplayOption()`)
 	}
 
 	return r.Body.GetAlbumArtistDisplayOption, nil
@@ -238,7 +238,7 @@ func (s *Service) GetLastIndexChange(httpClient *http.Client, args *GetLastIndex
 		return nil, err
 	}
 	if r.Body.GetLastIndexChange == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetLastIndexChange()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetLastIndexChange()`)
 	}
 
 	return r.Body.GetLastIndexChange, nil
@@ -274,7 +274,7 @@ func (s *Service) Browse(httpClient *http.Client, args *BrowseArgs) (*BrowseResp
 		return nil, err
 	}
 	if r.Body.Browse == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.Browse()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.Browse()`)
 	}
 
 	return r.Body.Browse, nil
@@ -302,7 +302,7 @@ func (s *Service) FindPrefix(httpClient *http.Client, args *FindPrefixArgs) (*Fi
 		return nil, err
 	}
 	if r.Body.FindPrefix == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.FindPrefix()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.FindPrefix()`)
 	}
 
 	return r.Body.FindPrefix, nil
@@ -330,7 +330,7 @@ func (s *Service) GetAllPrefixLocations(httpClient *http.Client, args *GetAllPre
 		return nil, err
 	}
 	if r.Body.GetAllPrefixLocations == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetAllPrefixLocations()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetAllPrefixLocations()`)
 	}
 
 	return r.Body.GetAllPrefixLocations, nil
@@ -358,7 +358,7 @@ func (s *Service) CreateObject(httpClient *http.Client, args *CreateObjectArgs) 
 		return nil, err
 	}
 	if r.Body.CreateObject == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.CreateObject()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.CreateObject()`)
 	}
 
 	return r.Body.CreateObject, nil
@@ -385,7 +385,7 @@ func (s *Service) UpdateObject(httpClient *http.Client, args *UpdateObjectArgs) 
 		return nil, err
 	}
 	if r.Body.UpdateObject == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.UpdateObject()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.UpdateObject()`)
 	}
 
 	return r.Body.UpdateObject, nil
@@ -410,7 +410,7 @@ func (s *Service) DestroyObject(httpClient *http.Client, args *DestroyObjectArgs
 		return nil, err
 	}
 	if r.Body.DestroyObject == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.DestroyObject()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.DestroyObject()`)
 	}
 
 	return r.Body.DestroyObject, nil
@@ -435,7 +435,7 @@ func (s *Service) RefreshShareIndex(httpClient *http.Client, args *RefreshShareI
 		return nil, err
 	}
 	if r.Body.RefreshShareIndex == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.RefreshShareIndex()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.RefreshShareIndex()`)
 	}
 
 	return r.Body.RefreshShareIndex, nil
@@ -460,7 +460,7 @@ func (s *Service) RequestResort(httpClient *http.Client, args *RequestResortArgs
 		return nil, err
 	}
 	if r.Body.RequestResort == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.RequestResort()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.RequestResort()`)
 	}
 
 	return r.Body.RequestResort, nil
@@ -485,7 +485,7 @@ func (s *Service) GetShareIndexInProgress(httpClient *http.Client, args *GetShar
 		return nil, err
 	}
 	if r.Body.GetShareIndexInProgress == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetShareIndexInProgress()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetShareIndexInProgress()`)
 	}
 
 	return r.Body.GetShareIndexInProgress, nil
@@ -510,7 +510,7 @@ func (s *Service) GetBrowseable(httpClient *http.Client, args *GetBrowseableArgs
 		return nil, err
 	}
 	if r.Body.GetBrowseable == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.GetBrowseable()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.GetBrowseable()`)
 	}
 
 	return r.Body.GetBrowseable, nil
@@ -535,7 +535,7 @@ func (s *Service) SetBrowseable(httpClient *http.Client, args *SetBrowseableArgs
 		return nil, err
 	}
 	if r.Body.SetBrowseable == nil {
-		return nil, errors.New(`unexpected respose from service calling contentdirectory.SetBrowseable()`)
+		return nil, errors.New(`unexpected response from service calling contentdirectory.SetBrowseable()`)
 	}
 
 	return r.Body.SetBrowseable, nil

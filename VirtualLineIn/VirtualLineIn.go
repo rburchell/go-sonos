@@ -124,7 +124,7 @@ func (s *Service) StartTransmission(httpClient *http.Client, args *StartTransmis
 		return nil, err
 	}
 	if r.Body.StartTransmission == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.StartTransmission()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.StartTransmission()`)
 	}
 
 	return r.Body.StartTransmission, nil
@@ -150,7 +150,7 @@ func (s *Service) StopTransmission(httpClient *http.Client, args *StopTransmissi
 		return nil, err
 	}
 	if r.Body.StopTransmission == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.StopTransmission()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.StopTransmission()`)
 	}
 
 	return r.Body.StopTransmission, nil
@@ -176,7 +176,7 @@ func (s *Service) Play(httpClient *http.Client, args *PlayArgs) (*PlayResponse, 
 		return nil, err
 	}
 	if r.Body.Play == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.Play()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.Play()`)
 	}
 
 	return r.Body.Play, nil
@@ -201,7 +201,7 @@ func (s *Service) Pause(httpClient *http.Client, args *PauseArgs) (*PauseRespons
 		return nil, err
 	}
 	if r.Body.Pause == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.Pause()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.Pause()`)
 	}
 
 	return r.Body.Pause, nil
@@ -226,7 +226,7 @@ func (s *Service) Next(httpClient *http.Client, args *NextArgs) (*NextResponse, 
 		return nil, err
 	}
 	if r.Body.Next == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.Next()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.Next()`)
 	}
 
 	return r.Body.Next, nil
@@ -251,7 +251,7 @@ func (s *Service) Previous(httpClient *http.Client, args *PreviousArgs) (*Previo
 		return nil, err
 	}
 	if r.Body.Previous == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.Previous()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.Previous()`)
 	}
 
 	return r.Body.Previous, nil
@@ -276,7 +276,7 @@ func (s *Service) Stop(httpClient *http.Client, args *StopArgs) (*StopResponse, 
 		return nil, err
 	}
 	if r.Body.Stop == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.Stop()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.Stop()`)
 	}
 
 	return r.Body.Stop, nil
@@ -302,7 +302,7 @@ func (s *Service) SetVolume(httpClient *http.Client, args *SetVolumeArgs) (*SetV
 		return nil, err
 	}
 	if r.Body.SetVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling virtuallinein.SetVolume()`)
+		return nil, errors.New(`unexpected response from service calling virtuallinein.SetVolume()`)
 	}
 
 	return r.Body.SetVolume, nil

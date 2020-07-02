@@ -233,7 +233,7 @@ func MakeServiceApi(ServiceName, serviceControlEndpoint, serviceEventEndpoint st
 		fmt.Fprintf(buf, "Body: Body{%s: args},\n", action.Name)
 		fmt.Fprintf(buf, "})\n")
 		fmt.Fprintf(buf, "if err != nil { return nil, err }\n")
-		fmt.Fprintf(buf, "if r.Body.%s == nil { return nil, errors.New(`unexpected respose from service calling %s.%s()`) }\n",
+		fmt.Fprintf(buf, "if r.Body.%s == nil { return nil, errors.New(`unexpected response from service calling %s.%s()`) }\n",
 			action.Name, strings.ToLower(ServiceName), action.Name)
 		fmt.Fprintf(buf, "\nreturn r.Body.%s, nil }\n", action.Name)
 	}

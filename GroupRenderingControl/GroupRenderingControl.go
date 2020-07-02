@@ -119,7 +119,7 @@ func (s *Service) GetGroupMute(httpClient *http.Client, args *GetGroupMuteArgs) 
 		return nil, err
 	}
 	if r.Body.GetGroupMute == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.GetGroupMute()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.GetGroupMute()`)
 	}
 
 	return r.Body.GetGroupMute, nil
@@ -145,7 +145,7 @@ func (s *Service) SetGroupMute(httpClient *http.Client, args *SetGroupMuteArgs) 
 		return nil, err
 	}
 	if r.Body.SetGroupMute == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.SetGroupMute()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.SetGroupMute()`)
 	}
 
 	return r.Body.SetGroupMute, nil
@@ -171,7 +171,7 @@ func (s *Service) GetGroupVolume(httpClient *http.Client, args *GetGroupVolumeAr
 		return nil, err
 	}
 	if r.Body.GetGroupVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.GetGroupVolume()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.GetGroupVolume()`)
 	}
 
 	return r.Body.GetGroupVolume, nil
@@ -198,7 +198,7 @@ func (s *Service) SetGroupVolume(httpClient *http.Client, args *SetGroupVolumeAr
 		return nil, err
 	}
 	if r.Body.SetGroupVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.SetGroupVolume()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.SetGroupVolume()`)
 	}
 
 	return r.Body.SetGroupVolume, nil
@@ -225,7 +225,7 @@ func (s *Service) SetRelativeGroupVolume(httpClient *http.Client, args *SetRelat
 		return nil, err
 	}
 	if r.Body.SetRelativeGroupVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.SetRelativeGroupVolume()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.SetRelativeGroupVolume()`)
 	}
 
 	return r.Body.SetRelativeGroupVolume, nil
@@ -250,7 +250,7 @@ func (s *Service) SnapshotGroupVolume(httpClient *http.Client, args *SnapshotGro
 		return nil, err
 	}
 	if r.Body.SnapshotGroupVolume == nil {
-		return nil, errors.New(`unexpected respose from service calling grouprenderingcontrol.SnapshotGroupVolume()`)
+		return nil, errors.New(`unexpected response from service calling grouprenderingcontrol.SnapshotGroupVolume()`)
 	}
 
 	return r.Body.SnapshotGroupVolume, nil

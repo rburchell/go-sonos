@@ -141,7 +141,7 @@ func (s *Service) SetFormat(httpClient *http.Client, args *SetFormatArgs) (*SetF
 		return nil, err
 	}
 	if r.Body.SetFormat == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.SetFormat()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.SetFormat()`)
 	}
 
 	return r.Body.SetFormat, nil
@@ -167,7 +167,7 @@ func (s *Service) GetFormat(httpClient *http.Client, args *GetFormatArgs) (*GetF
 		return nil, err
 	}
 	if r.Body.GetFormat == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetFormat()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetFormat()`)
 	}
 
 	return r.Body.GetFormat, nil
@@ -193,7 +193,7 @@ func (s *Service) SetTimeZone(httpClient *http.Client, args *SetTimeZoneArgs) (*
 		return nil, err
 	}
 	if r.Body.SetTimeZone == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.SetTimeZone()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.SetTimeZone()`)
 	}
 
 	return r.Body.SetTimeZone, nil
@@ -219,7 +219,7 @@ func (s *Service) GetTimeZone(httpClient *http.Client, args *GetTimeZoneArgs) (*
 		return nil, err
 	}
 	if r.Body.GetTimeZone == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetTimeZone()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetTimeZone()`)
 	}
 
 	return r.Body.GetTimeZone, nil
@@ -246,7 +246,7 @@ func (s *Service) GetTimeZoneAndRule(httpClient *http.Client, args *GetTimeZoneA
 		return nil, err
 	}
 	if r.Body.GetTimeZoneAndRule == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetTimeZoneAndRule()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetTimeZoneAndRule()`)
 	}
 
 	return r.Body.GetTimeZoneAndRule, nil
@@ -272,7 +272,7 @@ func (s *Service) GetTimeZoneRule(httpClient *http.Client, args *GetTimeZoneRule
 		return nil, err
 	}
 	if r.Body.GetTimeZoneRule == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetTimeZoneRule()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetTimeZoneRule()`)
 	}
 
 	return r.Body.GetTimeZoneRule, nil
@@ -297,7 +297,7 @@ func (s *Service) SetTimeServer(httpClient *http.Client, args *SetTimeServerArgs
 		return nil, err
 	}
 	if r.Body.SetTimeServer == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.SetTimeServer()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.SetTimeServer()`)
 	}
 
 	return r.Body.SetTimeServer, nil
@@ -322,7 +322,7 @@ func (s *Service) GetTimeServer(httpClient *http.Client, args *GetTimeServerArgs
 		return nil, err
 	}
 	if r.Body.GetTimeServer == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetTimeServer()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetTimeServer()`)
 	}
 
 	return r.Body.GetTimeServer, nil
@@ -348,7 +348,7 @@ func (s *Service) SetTimeNow(httpClient *http.Client, args *SetTimeNowArgs) (*Se
 		return nil, err
 	}
 	if r.Body.SetTimeNow == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.SetTimeNow()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.SetTimeNow()`)
 	}
 
 	return r.Body.SetTimeNow, nil
@@ -374,7 +374,7 @@ func (s *Service) GetHouseholdTimeAtStamp(httpClient *http.Client, args *GetHous
 		return nil, err
 	}
 	if r.Body.GetHouseholdTimeAtStamp == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetHouseholdTimeAtStamp()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetHouseholdTimeAtStamp()`)
 	}
 
 	return r.Body.GetHouseholdTimeAtStamp, nil
@@ -402,7 +402,7 @@ func (s *Service) GetTimeNow(httpClient *http.Client, args *GetTimeNowArgs) (*Ge
 		return nil, err
 	}
 	if r.Body.GetTimeNow == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetTimeNow()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetTimeNow()`)
 	}
 
 	return r.Body.GetTimeNow, nil
@@ -445,7 +445,7 @@ func (s *Service) CreateAlarm(httpClient *http.Client, args *CreateAlarmArgs) (*
 		return nil, err
 	}
 	if r.Body.CreateAlarm == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.CreateAlarm()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.CreateAlarm()`)
 	}
 
 	return r.Body.CreateAlarm, nil
@@ -488,7 +488,7 @@ func (s *Service) UpdateAlarm(httpClient *http.Client, args *UpdateAlarmArgs) (*
 		return nil, err
 	}
 	if r.Body.UpdateAlarm == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.UpdateAlarm()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.UpdateAlarm()`)
 	}
 
 	return r.Body.UpdateAlarm, nil
@@ -513,7 +513,7 @@ func (s *Service) DestroyAlarm(httpClient *http.Client, args *DestroyAlarmArgs) 
 		return nil, err
 	}
 	if r.Body.DestroyAlarm == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.DestroyAlarm()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.DestroyAlarm()`)
 	}
 
 	return r.Body.DestroyAlarm, nil
@@ -539,7 +539,7 @@ func (s *Service) ListAlarms(httpClient *http.Client, args *ListAlarmsArgs) (*Li
 		return nil, err
 	}
 	if r.Body.ListAlarms == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.ListAlarms()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.ListAlarms()`)
 	}
 
 	return r.Body.ListAlarms, nil
@@ -564,7 +564,7 @@ func (s *Service) SetDailyIndexRefreshTime(httpClient *http.Client, args *SetDai
 		return nil, err
 	}
 	if r.Body.SetDailyIndexRefreshTime == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.SetDailyIndexRefreshTime()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.SetDailyIndexRefreshTime()`)
 	}
 
 	return r.Body.SetDailyIndexRefreshTime, nil
@@ -589,7 +589,7 @@ func (s *Service) GetDailyIndexRefreshTime(httpClient *http.Client, args *GetDai
 		return nil, err
 	}
 	if r.Body.GetDailyIndexRefreshTime == nil {
-		return nil, errors.New(`unexpected respose from service calling alarmclock.GetDailyIndexRefreshTime()`)
+		return nil, errors.New(`unexpected response from service calling alarmclock.GetDailyIndexRefreshTime()`)
 	}
 
 	return r.Body.GetDailyIndexRefreshTime, nil

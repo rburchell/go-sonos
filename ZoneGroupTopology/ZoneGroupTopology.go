@@ -127,7 +127,7 @@ func (s *Service) CheckForUpdate(httpClient *http.Client, args *CheckForUpdateAr
 		return nil, err
 	}
 	if r.Body.CheckForUpdate == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.CheckForUpdate()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.CheckForUpdate()`)
 	}
 
 	return r.Body.CheckForUpdate, nil
@@ -154,7 +154,7 @@ func (s *Service) BeginSoftwareUpdate(httpClient *http.Client, args *BeginSoftwa
 		return nil, err
 	}
 	if r.Body.BeginSoftwareUpdate == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.BeginSoftwareUpdate()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.BeginSoftwareUpdate()`)
 	}
 
 	return r.Body.BeginSoftwareUpdate, nil
@@ -183,7 +183,7 @@ func (s *Service) ReportUnresponsiveDevice(httpClient *http.Client, args *Report
 		return nil, err
 	}
 	if r.Body.ReportUnresponsiveDevice == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.ReportUnresponsiveDevice()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.ReportUnresponsiveDevice()`)
 	}
 
 	return r.Body.ReportUnresponsiveDevice, nil
@@ -207,7 +207,7 @@ func (s *Service) ReportAlarmStartedRunning(httpClient *http.Client, args *Repor
 		return nil, err
 	}
 	if r.Body.ReportAlarmStartedRunning == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.ReportAlarmStartedRunning()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.ReportAlarmStartedRunning()`)
 	}
 
 	return r.Body.ReportAlarmStartedRunning, nil
@@ -234,7 +234,7 @@ func (s *Service) SubmitDiagnostics(httpClient *http.Client, args *SubmitDiagnos
 		return nil, err
 	}
 	if r.Body.SubmitDiagnostics == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.SubmitDiagnostics()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.SubmitDiagnostics()`)
 	}
 
 	return r.Body.SubmitDiagnostics, nil
@@ -261,7 +261,7 @@ func (s *Service) RegisterMobileDevice(httpClient *http.Client, args *RegisterMo
 		return nil, err
 	}
 	if r.Body.RegisterMobileDevice == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.RegisterMobileDevice()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.RegisterMobileDevice()`)
 	}
 
 	return r.Body.RegisterMobileDevice, nil
@@ -289,7 +289,7 @@ func (s *Service) GetZoneGroupAttributes(httpClient *http.Client, args *GetZoneG
 		return nil, err
 	}
 	if r.Body.GetZoneGroupAttributes == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.GetZoneGroupAttributes()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.GetZoneGroupAttributes()`)
 	}
 
 	return r.Body.GetZoneGroupAttributes, nil
@@ -314,7 +314,7 @@ func (s *Service) GetZoneGroupState(httpClient *http.Client, args *GetZoneGroupS
 		return nil, err
 	}
 	if r.Body.GetZoneGroupState == nil {
-		return nil, errors.New(`unexpected respose from service calling zonegrouptopology.GetZoneGroupState()`)
+		return nil, errors.New(`unexpected response from service calling zonegrouptopology.GetZoneGroupState()`)
 	}
 
 	return r.Body.GetZoneGroupState, nil

@@ -114,7 +114,7 @@ func (s *Service) GetSessionId(httpClient *http.Client, args *GetSessionIdArgs) 
 		return nil, err
 	}
 	if r.Body.GetSessionId == nil {
-		return nil, errors.New(`unexpected respose from service calling musicservices.GetSessionId()`)
+		return nil, errors.New(`unexpected response from service calling musicservices.GetSessionId()`)
 	}
 
 	return r.Body.GetSessionId, nil
@@ -141,7 +141,7 @@ func (s *Service) ListAvailableServices(httpClient *http.Client, args *ListAvail
 		return nil, err
 	}
 	if r.Body.ListAvailableServices == nil {
-		return nil, errors.New(`unexpected respose from service calling musicservices.ListAvailableServices()`)
+		return nil, errors.New(`unexpected response from service calling musicservices.ListAvailableServices()`)
 	}
 
 	return r.Body.ListAvailableServices, nil
@@ -165,7 +165,7 @@ func (s *Service) UpdateAvailableServices(httpClient *http.Client, args *UpdateA
 		return nil, err
 	}
 	if r.Body.UpdateAvailableServices == nil {
-		return nil, errors.New(`unexpected respose from service calling musicservices.UpdateAvailableServices()`)
+		return nil, errors.New(`unexpected response from service calling musicservices.UpdateAvailableServices()`)
 	}
 
 	return r.Body.UpdateAvailableServices, nil

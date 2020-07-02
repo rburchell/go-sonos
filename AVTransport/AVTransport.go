@@ -192,7 +192,7 @@ func (s *Service) SetAVTransportURI(httpClient *http.Client, args *SetAVTranspor
 		return nil, err
 	}
 	if r.Body.SetAVTransportURI == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SetAVTransportURI()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SetAVTransportURI()`)
 	}
 
 	return r.Body.SetAVTransportURI, nil
@@ -219,7 +219,7 @@ func (s *Service) SetNextAVTransportURI(httpClient *http.Client, args *SetNextAV
 		return nil, err
 	}
 	if r.Body.SetNextAVTransportURI == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SetNextAVTransportURI()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SetNextAVTransportURI()`)
 	}
 
 	return r.Body.SetNextAVTransportURI, nil
@@ -251,7 +251,7 @@ func (s *Service) AddURIToQueue(httpClient *http.Client, args *AddURIToQueueArgs
 		return nil, err
 	}
 	if r.Body.AddURIToQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.AddURIToQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.AddURIToQueue()`)
 	}
 
 	return r.Body.AddURIToQueue, nil
@@ -288,7 +288,7 @@ func (s *Service) AddMultipleURIsToQueue(httpClient *http.Client, args *AddMulti
 		return nil, err
 	}
 	if r.Body.AddMultipleURIsToQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.AddMultipleURIsToQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.AddMultipleURIsToQueue()`)
 	}
 
 	return r.Body.AddMultipleURIsToQueue, nil
@@ -317,7 +317,7 @@ func (s *Service) ReorderTracksInQueue(httpClient *http.Client, args *ReorderTra
 		return nil, err
 	}
 	if r.Body.ReorderTracksInQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.ReorderTracksInQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.ReorderTracksInQueue()`)
 	}
 
 	return r.Body.ReorderTracksInQueue, nil
@@ -344,7 +344,7 @@ func (s *Service) RemoveTrackFromQueue(httpClient *http.Client, args *RemoveTrac
 		return nil, err
 	}
 	if r.Body.RemoveTrackFromQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.RemoveTrackFromQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.RemoveTrackFromQueue()`)
 	}
 
 	return r.Body.RemoveTrackFromQueue, nil
@@ -373,7 +373,7 @@ func (s *Service) RemoveTrackRangeFromQueue(httpClient *http.Client, args *Remov
 		return nil, err
 	}
 	if r.Body.RemoveTrackRangeFromQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.RemoveTrackRangeFromQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.RemoveTrackRangeFromQueue()`)
 	}
 
 	return r.Body.RemoveTrackRangeFromQueue, nil
@@ -398,7 +398,7 @@ func (s *Service) RemoveAllTracksFromQueue(httpClient *http.Client, args *Remove
 		return nil, err
 	}
 	if r.Body.RemoveAllTracksFromQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.RemoveAllTracksFromQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.RemoveAllTracksFromQueue()`)
 	}
 
 	return r.Body.RemoveAllTracksFromQueue, nil
@@ -426,7 +426,7 @@ func (s *Service) SaveQueue(httpClient *http.Client, args *SaveQueueArgs) (*Save
 		return nil, err
 	}
 	if r.Body.SaveQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SaveQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SaveQueue()`)
 	}
 
 	return r.Body.SaveQueue, nil
@@ -451,7 +451,7 @@ func (s *Service) BackupQueue(httpClient *http.Client, args *BackupQueueArgs) (*
 		return nil, err
 	}
 	if r.Body.BackupQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.BackupQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.BackupQueue()`)
 	}
 
 	return r.Body.BackupQueue, nil
@@ -483,7 +483,7 @@ func (s *Service) CreateSavedQueue(httpClient *http.Client, args *CreateSavedQue
 		return nil, err
 	}
 	if r.Body.CreateSavedQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.CreateSavedQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.CreateSavedQueue()`)
 	}
 
 	return r.Body.CreateSavedQueue, nil
@@ -516,7 +516,7 @@ func (s *Service) AddURIToSavedQueue(httpClient *http.Client, args *AddURIToSave
 		return nil, err
 	}
 	if r.Body.AddURIToSavedQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.AddURIToSavedQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.AddURIToSavedQueue()`)
 	}
 
 	return r.Body.AddURIToSavedQueue, nil
@@ -548,7 +548,7 @@ func (s *Service) ReorderTracksInSavedQueue(httpClient *http.Client, args *Reord
 		return nil, err
 	}
 	if r.Body.ReorderTracksInSavedQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.ReorderTracksInSavedQueue()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.ReorderTracksInSavedQueue()`)
 	}
 
 	return r.Body.ReorderTracksInSavedQueue, nil
@@ -582,7 +582,7 @@ func (s *Service) GetMediaInfo(httpClient *http.Client, args *GetMediaInfoArgs) 
 		return nil, err
 	}
 	if r.Body.GetMediaInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetMediaInfo()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetMediaInfo()`)
 	}
 
 	return r.Body.GetMediaInfo, nil
@@ -610,7 +610,7 @@ func (s *Service) GetTransportInfo(httpClient *http.Client, args *GetTransportIn
 		return nil, err
 	}
 	if r.Body.GetTransportInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetTransportInfo()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetTransportInfo()`)
 	}
 
 	return r.Body.GetTransportInfo, nil
@@ -643,7 +643,7 @@ func (s *Service) GetPositionInfo(httpClient *http.Client, args *GetPositionInfo
 		return nil, err
 	}
 	if r.Body.GetPositionInfo == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetPositionInfo()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetPositionInfo()`)
 	}
 
 	return r.Body.GetPositionInfo, nil
@@ -671,7 +671,7 @@ func (s *Service) GetDeviceCapabilities(httpClient *http.Client, args *GetDevice
 		return nil, err
 	}
 	if r.Body.GetDeviceCapabilities == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetDeviceCapabilities()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetDeviceCapabilities()`)
 	}
 
 	return r.Body.GetDeviceCapabilities, nil
@@ -698,7 +698,7 @@ func (s *Service) GetTransportSettings(httpClient *http.Client, args *GetTranspo
 		return nil, err
 	}
 	if r.Body.GetTransportSettings == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetTransportSettings()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetTransportSettings()`)
 	}
 
 	return r.Body.GetTransportSettings, nil
@@ -724,7 +724,7 @@ func (s *Service) GetCrossfadeMode(httpClient *http.Client, args *GetCrossfadeMo
 		return nil, err
 	}
 	if r.Body.GetCrossfadeMode == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetCrossfadeMode()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetCrossfadeMode()`)
 	}
 
 	return r.Body.GetCrossfadeMode, nil
@@ -749,7 +749,7 @@ func (s *Service) Stop(httpClient *http.Client, args *StopArgs) (*StopResponse, 
 		return nil, err
 	}
 	if r.Body.Stop == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Stop()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Stop()`)
 	}
 
 	return r.Body.Stop, nil
@@ -776,7 +776,7 @@ func (s *Service) Play(httpClient *http.Client, args *PlayArgs) (*PlayResponse, 
 		return nil, err
 	}
 	if r.Body.Play == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Play()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Play()`)
 	}
 
 	return r.Body.Play, nil
@@ -801,7 +801,7 @@ func (s *Service) Pause(httpClient *http.Client, args *PauseArgs) (*PauseRespons
 		return nil, err
 	}
 	if r.Body.Pause == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Pause()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Pause()`)
 	}
 
 	return r.Body.Pause, nil
@@ -831,7 +831,7 @@ func (s *Service) Seek(httpClient *http.Client, args *SeekArgs) (*SeekResponse, 
 		return nil, err
 	}
 	if r.Body.Seek == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Seek()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Seek()`)
 	}
 
 	return r.Body.Seek, nil
@@ -856,7 +856,7 @@ func (s *Service) Next(httpClient *http.Client, args *NextArgs) (*NextResponse, 
 		return nil, err
 	}
 	if r.Body.Next == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Next()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Next()`)
 	}
 
 	return r.Body.Next, nil
@@ -881,7 +881,7 @@ func (s *Service) Previous(httpClient *http.Client, args *PreviousArgs) (*Previo
 		return nil, err
 	}
 	if r.Body.Previous == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.Previous()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.Previous()`)
 	}
 
 	return r.Body.Previous, nil
@@ -913,7 +913,7 @@ func (s *Service) SetPlayMode(httpClient *http.Client, args *SetPlayModeArgs) (*
 		return nil, err
 	}
 	if r.Body.SetPlayMode == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SetPlayMode()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SetPlayMode()`)
 	}
 
 	return r.Body.SetPlayMode, nil
@@ -939,7 +939,7 @@ func (s *Service) SetCrossfadeMode(httpClient *http.Client, args *SetCrossfadeMo
 		return nil, err
 	}
 	if r.Body.SetCrossfadeMode == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SetCrossfadeMode()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SetCrossfadeMode()`)
 	}
 
 	return r.Body.SetCrossfadeMode, nil
@@ -965,7 +965,7 @@ func (s *Service) NotifyDeletedURI(httpClient *http.Client, args *NotifyDeletedU
 		return nil, err
 	}
 	if r.Body.NotifyDeletedURI == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.NotifyDeletedURI()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.NotifyDeletedURI()`)
 	}
 
 	return r.Body.NotifyDeletedURI, nil
@@ -991,7 +991,7 @@ func (s *Service) GetCurrentTransportActions(httpClient *http.Client, args *GetC
 		return nil, err
 	}
 	if r.Body.GetCurrentTransportActions == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetCurrentTransportActions()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetCurrentTransportActions()`)
 	}
 
 	return r.Body.GetCurrentTransportActions, nil
@@ -1018,7 +1018,7 @@ func (s *Service) BecomeCoordinatorOfStandaloneGroup(httpClient *http.Client, ar
 		return nil, err
 	}
 	if r.Body.BecomeCoordinatorOfStandaloneGroup == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.BecomeCoordinatorOfStandaloneGroup()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.BecomeCoordinatorOfStandaloneGroup()`)
 	}
 
 	return r.Body.BecomeCoordinatorOfStandaloneGroup, nil
@@ -1045,7 +1045,7 @@ func (s *Service) DelegateGroupCoordinationTo(httpClient *http.Client, args *Del
 		return nil, err
 	}
 	if r.Body.DelegateGroupCoordinationTo == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.DelegateGroupCoordinationTo()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.DelegateGroupCoordinationTo()`)
 	}
 
 	return r.Body.DelegateGroupCoordinationTo, nil
@@ -1081,7 +1081,7 @@ func (s *Service) BecomeGroupCoordinator(httpClient *http.Client, args *BecomeGr
 		return nil, err
 	}
 	if r.Body.BecomeGroupCoordinator == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.BecomeGroupCoordinator()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.BecomeGroupCoordinator()`)
 	}
 
 	return r.Body.BecomeGroupCoordinator, nil
@@ -1118,7 +1118,7 @@ func (s *Service) BecomeGroupCoordinatorAndSource(httpClient *http.Client, args 
 		return nil, err
 	}
 	if r.Body.BecomeGroupCoordinatorAndSource == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.BecomeGroupCoordinatorAndSource()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.BecomeGroupCoordinatorAndSource()`)
 	}
 
 	return r.Body.BecomeGroupCoordinatorAndSource, nil
@@ -1147,7 +1147,7 @@ func (s *Service) ChangeCoordinator(httpClient *http.Client, args *ChangeCoordin
 		return nil, err
 	}
 	if r.Body.ChangeCoordinator == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.ChangeCoordinator()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.ChangeCoordinator()`)
 	}
 
 	return r.Body.ChangeCoordinator, nil
@@ -1174,7 +1174,7 @@ func (s *Service) ChangeTransportSettings(httpClient *http.Client, args *ChangeT
 		return nil, err
 	}
 	if r.Body.ChangeTransportSettings == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.ChangeTransportSettings()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.ChangeTransportSettings()`)
 	}
 
 	return r.Body.ChangeTransportSettings, nil
@@ -1200,7 +1200,7 @@ func (s *Service) ConfigureSleepTimer(httpClient *http.Client, args *ConfigureSl
 		return nil, err
 	}
 	if r.Body.ConfigureSleepTimer == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.ConfigureSleepTimer()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.ConfigureSleepTimer()`)
 	}
 
 	return r.Body.ConfigureSleepTimer, nil
@@ -1227,7 +1227,7 @@ func (s *Service) GetRemainingSleepTimerDuration(httpClient *http.Client, args *
 		return nil, err
 	}
 	if r.Body.GetRemainingSleepTimerDuration == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetRemainingSleepTimerDuration()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetRemainingSleepTimerDuration()`)
 	}
 
 	return r.Body.GetRemainingSleepTimerDuration, nil
@@ -1266,7 +1266,7 @@ func (s *Service) RunAlarm(httpClient *http.Client, args *RunAlarmArgs) (*RunAla
 		return nil, err
 	}
 	if r.Body.RunAlarm == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.RunAlarm()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.RunAlarm()`)
 	}
 
 	return r.Body.RunAlarm, nil
@@ -1296,7 +1296,7 @@ func (s *Service) StartAutoplay(httpClient *http.Client, args *StartAutoplayArgs
 		return nil, err
 	}
 	if r.Body.StartAutoplay == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.StartAutoplay()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.StartAutoplay()`)
 	}
 
 	return r.Body.StartAutoplay, nil
@@ -1324,7 +1324,7 @@ func (s *Service) GetRunningAlarmProperties(httpClient *http.Client, args *GetRu
 		return nil, err
 	}
 	if r.Body.GetRunningAlarmProperties == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.GetRunningAlarmProperties()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.GetRunningAlarmProperties()`)
 	}
 
 	return r.Body.GetRunningAlarmProperties, nil
@@ -1350,7 +1350,7 @@ func (s *Service) SnoozeAlarm(httpClient *http.Client, args *SnoozeAlarmArgs) (*
 		return nil, err
 	}
 	if r.Body.SnoozeAlarm == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.SnoozeAlarm()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.SnoozeAlarm()`)
 	}
 
 	return r.Body.SnoozeAlarm, nil
@@ -1375,7 +1375,7 @@ func (s *Service) EndDirectControlSession(httpClient *http.Client, args *EndDire
 		return nil, err
 	}
 	if r.Body.EndDirectControlSession == nil {
-		return nil, errors.New(`unexpected respose from service calling avtransport.EndDirectControlSession()`)
+		return nil, errors.New(`unexpected response from service calling avtransport.EndDirectControlSession()`)
 	}
 
 	return r.Body.EndDirectControlSession, nil

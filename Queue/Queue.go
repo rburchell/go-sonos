@@ -137,7 +137,7 @@ func (s *Service) AddURI(httpClient *http.Client, args *AddURIArgs) (*AddURIResp
 		return nil, err
 	}
 	if r.Body.AddURI == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.AddURI()`)
+		return nil, errors.New(`unexpected response from service calling queue.AddURI()`)
 	}
 
 	return r.Body.AddURI, nil
@@ -173,7 +173,7 @@ func (s *Service) AddMultipleURIs(httpClient *http.Client, args *AddMultipleURIs
 		return nil, err
 	}
 	if r.Body.AddMultipleURIs == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.AddMultipleURIs()`)
+		return nil, errors.New(`unexpected response from service calling queue.AddMultipleURIs()`)
 	}
 
 	return r.Body.AddMultipleURIs, nil
@@ -200,7 +200,7 @@ func (s *Service) AttachQueue(httpClient *http.Client, args *AttachQueueArgs) (*
 		return nil, err
 	}
 	if r.Body.AttachQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.AttachQueue()`)
+		return nil, errors.New(`unexpected response from service calling queue.AttachQueue()`)
 	}
 
 	return r.Body.AttachQueue, nil
@@ -224,7 +224,7 @@ func (s *Service) Backup(httpClient *http.Client, args *BackupArgs) (*BackupResp
 		return nil, err
 	}
 	if r.Body.Backup == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.Backup()`)
+		return nil, errors.New(`unexpected response from service calling queue.Backup()`)
 	}
 
 	return r.Body.Backup, nil
@@ -255,7 +255,7 @@ func (s *Service) Browse(httpClient *http.Client, args *BrowseArgs) (*BrowseResp
 		return nil, err
 	}
 	if r.Body.Browse == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.Browse()`)
+		return nil, errors.New(`unexpected response from service calling queue.Browse()`)
 	}
 
 	return r.Body.Browse, nil
@@ -283,7 +283,7 @@ func (s *Service) CreateQueue(httpClient *http.Client, args *CreateQueueArgs) (*
 		return nil, err
 	}
 	if r.Body.CreateQueue == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.CreateQueue()`)
+		return nil, errors.New(`unexpected response from service calling queue.CreateQueue()`)
 	}
 
 	return r.Body.CreateQueue, nil
@@ -310,7 +310,7 @@ func (s *Service) RemoveAllTracks(httpClient *http.Client, args *RemoveAllTracks
 		return nil, err
 	}
 	if r.Body.RemoveAllTracks == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.RemoveAllTracks()`)
+		return nil, errors.New(`unexpected response from service calling queue.RemoveAllTracks()`)
 	}
 
 	return r.Body.RemoveAllTracks, nil
@@ -339,7 +339,7 @@ func (s *Service) RemoveTrackRange(httpClient *http.Client, args *RemoveTrackRan
 		return nil, err
 	}
 	if r.Body.RemoveTrackRange == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.RemoveTrackRange()`)
+		return nil, errors.New(`unexpected response from service calling queue.RemoveTrackRange()`)
 	}
 
 	return r.Body.RemoveTrackRange, nil
@@ -369,7 +369,7 @@ func (s *Service) ReorderTracks(httpClient *http.Client, args *ReorderTracksArgs
 		return nil, err
 	}
 	if r.Body.ReorderTracks == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.ReorderTracks()`)
+		return nil, errors.New(`unexpected response from service calling queue.ReorderTracks()`)
 	}
 
 	return r.Body.ReorderTracks, nil
@@ -403,7 +403,7 @@ func (s *Service) ReplaceAllTracks(httpClient *http.Client, args *ReplaceAllTrac
 		return nil, err
 	}
 	if r.Body.ReplaceAllTracks == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.ReplaceAllTracks()`)
+		return nil, errors.New(`unexpected response from service calling queue.ReplaceAllTracks()`)
 	}
 
 	return r.Body.ReplaceAllTracks, nil
@@ -431,7 +431,7 @@ func (s *Service) SaveAsSonosPlaylist(httpClient *http.Client, args *SaveAsSonos
 		return nil, err
 	}
 	if r.Body.SaveAsSonosPlaylist == nil {
-		return nil, errors.New(`unexpected respose from service calling queue.SaveAsSonosPlaylist()`)
+		return nil, errors.New(`unexpected response from service calling queue.SaveAsSonosPlaylist()`)
 	}
 
 	return r.Body.SaveAsSonosPlaylist, nil

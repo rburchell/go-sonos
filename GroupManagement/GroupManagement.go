@@ -120,7 +120,7 @@ func (s *Service) AddMember(httpClient *http.Client, args *AddMemberArgs) (*AddM
 		return nil, err
 	}
 	if r.Body.AddMember == nil {
-		return nil, errors.New(`unexpected respose from service calling groupmanagement.AddMember()`)
+		return nil, errors.New(`unexpected response from service calling groupmanagement.AddMember()`)
 	}
 
 	return r.Body.AddMember, nil
@@ -145,7 +145,7 @@ func (s *Service) RemoveMember(httpClient *http.Client, args *RemoveMemberArgs) 
 		return nil, err
 	}
 	if r.Body.RemoveMember == nil {
-		return nil, errors.New(`unexpected respose from service calling groupmanagement.RemoveMember()`)
+		return nil, errors.New(`unexpected response from service calling groupmanagement.RemoveMember()`)
 	}
 
 	return r.Body.RemoveMember, nil
@@ -171,7 +171,7 @@ func (s *Service) ReportTrackBufferingResult(httpClient *http.Client, args *Repo
 		return nil, err
 	}
 	if r.Body.ReportTrackBufferingResult == nil {
-		return nil, errors.New(`unexpected respose from service calling groupmanagement.ReportTrackBufferingResult()`)
+		return nil, errors.New(`unexpected response from service calling groupmanagement.ReportTrackBufferingResult()`)
 	}
 
 	return r.Body.ReportTrackBufferingResult, nil
@@ -196,7 +196,7 @@ func (s *Service) SetSourceAreaIds(httpClient *http.Client, args *SetSourceAreaI
 		return nil, err
 	}
 	if r.Body.SetSourceAreaIds == nil {
-		return nil, errors.New(`unexpected respose from service calling groupmanagement.SetSourceAreaIds()`)
+		return nil, errors.New(`unexpected response from service calling groupmanagement.SetSourceAreaIds()`)
 	}
 
 	return r.Body.SetSourceAreaIds, nil

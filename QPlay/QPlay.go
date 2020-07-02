@@ -111,7 +111,7 @@ func (s *Service) QPlayAuth(httpClient *http.Client, args *QPlayAuthArgs) (*QPla
 		return nil, err
 	}
 	if r.Body.QPlayAuth == nil {
-		return nil, errors.New(`unexpected respose from service calling qplay.QPlayAuth()`)
+		return nil, errors.New(`unexpected response from service calling qplay.QPlayAuth()`)
 	}
 
 	return r.Body.QPlayAuth, nil
