@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MusicServices/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MusicServices/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MusicServices/Event`)
+	e, err := url.Parse("/MusicServices/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -63,20 +85,20 @@ type BodyResponse struct {
 	UpdateAvailableServices *UpdateAvailableServicesResponse `xml:"UpdateAvailableServicesResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +124,9 @@ type GetSessionIdResponse struct {
 	SessionId string `xml:"SessionId"`
 }
 
-func (s *Service) GetSessionId(httpClient *http.Client, args *GetSessionIdArgs) (*GetSessionIdResponse, error) {
+func (s *Service) GetSessionId(args *GetSessionIdArgs) (*GetSessionIdResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetSessionId`, httpClient,
+	r, err := s.exec(`GetSessionId`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -129,9 +151,9 @@ type ListAvailableServicesResponse struct {
 	AvailableServiceListVersion    string `xml:"AvailableServiceListVersion"`
 }
 
-func (s *Service) ListAvailableServices(httpClient *http.Client, args *ListAvailableServicesArgs) (*ListAvailableServicesResponse, error) {
+func (s *Service) ListAvailableServices(args *ListAvailableServicesArgs) (*ListAvailableServicesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ListAvailableServices`, httpClient,
+	r, err := s.exec(`ListAvailableServices`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -153,9 +175,9 @@ type UpdateAvailableServicesArgs struct {
 type UpdateAvailableServicesResponse struct {
 }
 
-func (s *Service) UpdateAvailableServices(httpClient *http.Client, args *UpdateAvailableServicesArgs) (*UpdateAvailableServicesResponse, error) {
+func (s *Service) UpdateAvailableServices(args *UpdateAvailableServicesArgs) (*UpdateAvailableServicesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`UpdateAvailableServices`, httpClient,
+	r, err := s.exec(`UpdateAvailableServices`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

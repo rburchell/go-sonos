@@ -54,7 +54,7 @@ func (s *Sonos) Search() (chan *ZonePlayer, error) {
 			if err != nil {
 				continue
 			}
-			zp, err := NewZonePlayer(location)
+			zp, err := NewZonePlayer(WithLocation(location))
 			if err != nil {
 				continue
 			}

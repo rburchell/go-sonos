@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/SystemProperties/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/SystemProperties/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/SystemProperties/Event`)
+	e, err := url.Parse("/SystemProperties/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -91,20 +113,20 @@ type BodyResponse struct {
 	ReplaceAccountX                    *ReplaceAccountXResponse                    `xml:"ReplaceAccountXResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +151,9 @@ type SetStringArgs struct {
 type SetStringResponse struct {
 }
 
-func (s *Service) SetString(httpClient *http.Client, args *SetStringArgs) (*SetStringResponse, error) {
+func (s *Service) SetString(args *SetStringArgs) (*SetStringResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetString`, httpClient,
+	r, err := s.exec(`SetString`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -155,9 +177,9 @@ type GetStringResponse struct {
 	StringValue string `xml:"StringValue"`
 }
 
-func (s *Service) GetString(httpClient *http.Client, args *GetStringArgs) (*GetStringResponse, error) {
+func (s *Service) GetString(args *GetStringArgs) (*GetStringResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetString`, httpClient,
+	r, err := s.exec(`GetString`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -180,9 +202,9 @@ type RemoveArgs struct {
 type RemoveResponse struct {
 }
 
-func (s *Service) Remove(httpClient *http.Client, args *RemoveArgs) (*RemoveResponse, error) {
+func (s *Service) Remove(args *RemoveArgs) (*RemoveResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Remove`, httpClient,
+	r, err := s.exec(`Remove`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -206,9 +228,9 @@ type GetWebCodeResponse struct {
 	WebCode string `xml:"WebCode"`
 }
 
-func (s *Service) GetWebCode(httpClient *http.Client, args *GetWebCodeArgs) (*GetWebCodeResponse, error) {
+func (s *Service) GetWebCode(args *GetWebCodeArgs) (*GetWebCodeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetWebCode`, httpClient,
+	r, err := s.exec(`GetWebCode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -235,9 +257,9 @@ type ProvisionCredentialedTrialAccountXResponse struct {
 	AccountUDN string `xml:"AccountUDN"`
 }
 
-func (s *Service) ProvisionCredentialedTrialAccountX(httpClient *http.Client, args *ProvisionCredentialedTrialAccountXArgs) (*ProvisionCredentialedTrialAccountXResponse, error) {
+func (s *Service) ProvisionCredentialedTrialAccountX(args *ProvisionCredentialedTrialAccountXArgs) (*ProvisionCredentialedTrialAccountXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ProvisionCredentialedTrialAccountX`, httpClient,
+	r, err := s.exec(`ProvisionCredentialedTrialAccountX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -263,9 +285,9 @@ type AddAccountXResponse struct {
 	AccountUDN string `xml:"AccountUDN"`
 }
 
-func (s *Service) AddAccountX(httpClient *http.Client, args *AddAccountXArgs) (*AddAccountXResponse, error) {
+func (s *Service) AddAccountX(args *AddAccountXArgs) (*AddAccountXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddAccountX`, httpClient,
+	r, err := s.exec(`AddAccountX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -297,9 +319,9 @@ type AddOAuthAccountXResponse struct {
 	AccountNickname string `xml:"AccountNickname"`
 }
 
-func (s *Service) AddOAuthAccountX(httpClient *http.Client, args *AddOAuthAccountXArgs) (*AddOAuthAccountXResponse, error) {
+func (s *Service) AddOAuthAccountX(args *AddOAuthAccountXArgs) (*AddOAuthAccountXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddOAuthAccountX`, httpClient,
+	r, err := s.exec(`AddOAuthAccountX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -323,9 +345,9 @@ type RemoveAccountArgs struct {
 type RemoveAccountResponse struct {
 }
 
-func (s *Service) RemoveAccount(httpClient *http.Client, args *RemoveAccountArgs) (*RemoveAccountResponse, error) {
+func (s *Service) RemoveAccount(args *RemoveAccountArgs) (*RemoveAccountResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveAccount`, httpClient,
+	r, err := s.exec(`RemoveAccount`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -350,9 +372,9 @@ type EditAccountPasswordXArgs struct {
 type EditAccountPasswordXResponse struct {
 }
 
-func (s *Service) EditAccountPasswordX(httpClient *http.Client, args *EditAccountPasswordXArgs) (*EditAccountPasswordXResponse, error) {
+func (s *Service) EditAccountPasswordX(args *EditAccountPasswordXArgs) (*EditAccountPasswordXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`EditAccountPasswordX`, httpClient,
+	r, err := s.exec(`EditAccountPasswordX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -376,9 +398,9 @@ type SetAccountNicknameXArgs struct {
 type SetAccountNicknameXResponse struct {
 }
 
-func (s *Service) SetAccountNicknameX(httpClient *http.Client, args *SetAccountNicknameXArgs) (*SetAccountNicknameXResponse, error) {
+func (s *Service) SetAccountNicknameX(args *SetAccountNicknameXArgs) (*SetAccountNicknameXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetAccountNicknameX`, httpClient,
+	r, err := s.exec(`SetAccountNicknameX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -404,9 +426,9 @@ type RefreshAccountCredentialsXArgs struct {
 type RefreshAccountCredentialsXResponse struct {
 }
 
-func (s *Service) RefreshAccountCredentialsX(httpClient *http.Client, args *RefreshAccountCredentialsXArgs) (*RefreshAccountCredentialsXResponse, error) {
+func (s *Service) RefreshAccountCredentialsX(args *RefreshAccountCredentialsXArgs) (*RefreshAccountCredentialsXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RefreshAccountCredentialsX`, httpClient,
+	r, err := s.exec(`RefreshAccountCredentialsX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -431,9 +453,9 @@ type EditAccountMdArgs struct {
 type EditAccountMdResponse struct {
 }
 
-func (s *Service) EditAccountMd(httpClient *http.Client, args *EditAccountMdArgs) (*EditAccountMdResponse, error) {
+func (s *Service) EditAccountMd(args *EditAccountMdArgs) (*EditAccountMdResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`EditAccountMd`, httpClient,
+	r, err := s.exec(`EditAccountMd`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -455,9 +477,9 @@ type DoPostUpdateTasksArgs struct {
 type DoPostUpdateTasksResponse struct {
 }
 
-func (s *Service) DoPostUpdateTasks(httpClient *http.Client, args *DoPostUpdateTasksArgs) (*DoPostUpdateTasksResponse, error) {
+func (s *Service) DoPostUpdateTasks(args *DoPostUpdateTasksArgs) (*DoPostUpdateTasksResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`DoPostUpdateTasks`, httpClient,
+	r, err := s.exec(`DoPostUpdateTasks`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -479,9 +501,9 @@ type ResetThirdPartyCredentialsArgs struct {
 type ResetThirdPartyCredentialsResponse struct {
 }
 
-func (s *Service) ResetThirdPartyCredentials(httpClient *http.Client, args *ResetThirdPartyCredentialsArgs) (*ResetThirdPartyCredentialsResponse, error) {
+func (s *Service) ResetThirdPartyCredentials(args *ResetThirdPartyCredentialsArgs) (*ResetThirdPartyCredentialsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ResetThirdPartyCredentials`, httpClient,
+	r, err := s.exec(`ResetThirdPartyCredentials`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -504,9 +526,9 @@ type EnableRDMArgs struct {
 type EnableRDMResponse struct {
 }
 
-func (s *Service) EnableRDM(httpClient *http.Client, args *EnableRDMArgs) (*EnableRDMResponse, error) {
+func (s *Service) EnableRDM(args *EnableRDMArgs) (*EnableRDMResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`EnableRDM`, httpClient,
+	r, err := s.exec(`EnableRDM`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -529,9 +551,9 @@ type GetRDMResponse struct {
 	RDMValue bool `xml:"RDMValue"`
 }
 
-func (s *Service) GetRDM(httpClient *http.Client, args *GetRDMArgs) (*GetRDMResponse, error) {
+func (s *Service) GetRDM(args *GetRDMArgs) (*GetRDMResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetRDM`, httpClient,
+	r, err := s.exec(`GetRDM`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -560,9 +582,9 @@ type ReplaceAccountXResponse struct {
 	NewAccountUDN string `xml:"NewAccountUDN"`
 }
 
-func (s *Service) ReplaceAccountX(httpClient *http.Client, args *ReplaceAccountXArgs) (*ReplaceAccountXResponse, error) {
+func (s *Service) ReplaceAccountX(args *ReplaceAccountXArgs) (*ReplaceAccountXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReplaceAccountX`, httpClient,
+	r, err := s.exec(`ReplaceAccountX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaRenderer/Queue/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaRenderer/Queue/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaRenderer/Queue/Event`)
+	e, err := url.Parse("/MediaRenderer/Queue/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -79,20 +101,20 @@ type BodyResponse struct {
 	SaveAsSonosPlaylist *SaveAsSonosPlaylistResponse `xml:"SaveAsSonosPlaylistResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -125,9 +147,9 @@ type AddURIResponse struct {
 	NewUpdateID              uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) AddURI(httpClient *http.Client, args *AddURIArgs) (*AddURIResponse, error) {
+func (s *Service) AddURI(args *AddURIArgs) (*AddURIResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddURI`, httpClient,
+	r, err := s.exec(`AddURI`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -161,9 +183,9 @@ type AddMultipleURIsResponse struct {
 	NewUpdateID              uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) AddMultipleURIs(httpClient *http.Client, args *AddMultipleURIsArgs) (*AddMultipleURIsResponse, error) {
+func (s *Service) AddMultipleURIs(args *AddMultipleURIsArgs) (*AddMultipleURIsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddMultipleURIs`, httpClient,
+	r, err := s.exec(`AddMultipleURIs`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -188,9 +210,9 @@ type AttachQueueResponse struct {
 	QueueOwnerContext string `xml:"QueueOwnerContext"`
 }
 
-func (s *Service) AttachQueue(httpClient *http.Client, args *AttachQueueArgs) (*AttachQueueResponse, error) {
+func (s *Service) AttachQueue(args *AttachQueueArgs) (*AttachQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AttachQueue`, httpClient,
+	r, err := s.exec(`AttachQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -212,9 +234,9 @@ type BackupArgs struct {
 type BackupResponse struct {
 }
 
-func (s *Service) Backup(httpClient *http.Client, args *BackupArgs) (*BackupResponse, error) {
+func (s *Service) Backup(args *BackupArgs) (*BackupResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Backup`, httpClient,
+	r, err := s.exec(`Backup`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -243,9 +265,9 @@ type BrowseResponse struct {
 	UpdateID       uint32 `xml:"UpdateID"`
 }
 
-func (s *Service) Browse(httpClient *http.Client, args *BrowseArgs) (*BrowseResponse, error) {
+func (s *Service) Browse(args *BrowseArgs) (*BrowseResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Browse`, httpClient,
+	r, err := s.exec(`Browse`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -271,9 +293,9 @@ type CreateQueueResponse struct {
 	QueueID uint32 `xml:"QueueID"`
 }
 
-func (s *Service) CreateQueue(httpClient *http.Client, args *CreateQueueArgs) (*CreateQueueResponse, error) {
+func (s *Service) CreateQueue(args *CreateQueueArgs) (*CreateQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`CreateQueue`, httpClient,
+	r, err := s.exec(`CreateQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -298,9 +320,9 @@ type RemoveAllTracksResponse struct {
 	NewUpdateID uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) RemoveAllTracks(httpClient *http.Client, args *RemoveAllTracksArgs) (*RemoveAllTracksResponse, error) {
+func (s *Service) RemoveAllTracks(args *RemoveAllTracksArgs) (*RemoveAllTracksResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveAllTracks`, httpClient,
+	r, err := s.exec(`RemoveAllTracks`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -327,9 +349,9 @@ type RemoveTrackRangeResponse struct {
 	NewUpdateID uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) RemoveTrackRange(httpClient *http.Client, args *RemoveTrackRangeArgs) (*RemoveTrackRangeResponse, error) {
+func (s *Service) RemoveTrackRange(args *RemoveTrackRangeArgs) (*RemoveTrackRangeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveTrackRange`, httpClient,
+	r, err := s.exec(`RemoveTrackRange`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -357,9 +379,9 @@ type ReorderTracksResponse struct {
 	NewUpdateID uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) ReorderTracks(httpClient *http.Client, args *ReorderTracksArgs) (*ReorderTracksResponse, error) {
+func (s *Service) ReorderTracks(args *ReorderTracksArgs) (*ReorderTracksResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReorderTracks`, httpClient,
+	r, err := s.exec(`ReorderTracks`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -391,9 +413,9 @@ type ReplaceAllTracksResponse struct {
 	NewUpdateID    uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) ReplaceAllTracks(httpClient *http.Client, args *ReplaceAllTracksArgs) (*ReplaceAllTracksResponse, error) {
+func (s *Service) ReplaceAllTracks(args *ReplaceAllTracksArgs) (*ReplaceAllTracksResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReplaceAllTracks`, httpClient,
+	r, err := s.exec(`ReplaceAllTracks`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -419,9 +441,9 @@ type SaveAsSonosPlaylistResponse struct {
 	AssignedObjectID string `xml:"AssignedObjectID"`
 }
 
-func (s *Service) SaveAsSonosPlaylist(httpClient *http.Client, args *SaveAsSonosPlaylistArgs) (*SaveAsSonosPlaylistResponse, error) {
+func (s *Service) SaveAsSonosPlaylist(args *SaveAsSonosPlaylistArgs) (*SaveAsSonosPlaylistResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SaveAsSonosPlaylist`, httpClient,
+	r, err := s.exec(`SaveAsSonosPlaylist`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

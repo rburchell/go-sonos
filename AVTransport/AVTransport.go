@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaRenderer/AVTransport/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaRenderer/AVTransport/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaRenderer/AVTransport/Event`)
+	e, err := url.Parse("/MediaRenderer/AVTransport/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -141,20 +163,20 @@ type BodyResponse struct {
 	EndDirectControlSession            *EndDirectControlSessionResponse            `xml:"EndDirectControlSessionResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -180,9 +202,9 @@ type SetAVTransportURIArgs struct {
 type SetAVTransportURIResponse struct {
 }
 
-func (s *Service) SetAVTransportURI(httpClient *http.Client, args *SetAVTransportURIArgs) (*SetAVTransportURIResponse, error) {
+func (s *Service) SetAVTransportURI(args *SetAVTransportURIArgs) (*SetAVTransportURIResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetAVTransportURI`, httpClient,
+	r, err := s.exec(`SetAVTransportURI`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -207,9 +229,9 @@ type SetNextAVTransportURIArgs struct {
 type SetNextAVTransportURIResponse struct {
 }
 
-func (s *Service) SetNextAVTransportURI(httpClient *http.Client, args *SetNextAVTransportURIArgs) (*SetNextAVTransportURIResponse, error) {
+func (s *Service) SetNextAVTransportURI(args *SetNextAVTransportURIArgs) (*SetNextAVTransportURIResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetNextAVTransportURI`, httpClient,
+	r, err := s.exec(`SetNextAVTransportURI`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -239,9 +261,9 @@ type AddURIToQueueResponse struct {
 	NewQueueLength           uint32 `xml:"NewQueueLength"`
 }
 
-func (s *Service) AddURIToQueue(httpClient *http.Client, args *AddURIToQueueArgs) (*AddURIToQueueResponse, error) {
+func (s *Service) AddURIToQueue(args *AddURIToQueueArgs) (*AddURIToQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddURIToQueue`, httpClient,
+	r, err := s.exec(`AddURIToQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -276,9 +298,9 @@ type AddMultipleURIsToQueueResponse struct {
 	NewUpdateID              uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) AddMultipleURIsToQueue(httpClient *http.Client, args *AddMultipleURIsToQueueArgs) (*AddMultipleURIsToQueueResponse, error) {
+func (s *Service) AddMultipleURIsToQueue(args *AddMultipleURIsToQueueArgs) (*AddMultipleURIsToQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddMultipleURIsToQueue`, httpClient,
+	r, err := s.exec(`AddMultipleURIsToQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -305,9 +327,9 @@ type ReorderTracksInQueueArgs struct {
 type ReorderTracksInQueueResponse struct {
 }
 
-func (s *Service) ReorderTracksInQueue(httpClient *http.Client, args *ReorderTracksInQueueArgs) (*ReorderTracksInQueueResponse, error) {
+func (s *Service) ReorderTracksInQueue(args *ReorderTracksInQueueArgs) (*ReorderTracksInQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReorderTracksInQueue`, httpClient,
+	r, err := s.exec(`ReorderTracksInQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -332,9 +354,9 @@ type RemoveTrackFromQueueArgs struct {
 type RemoveTrackFromQueueResponse struct {
 }
 
-func (s *Service) RemoveTrackFromQueue(httpClient *http.Client, args *RemoveTrackFromQueueArgs) (*RemoveTrackFromQueueResponse, error) {
+func (s *Service) RemoveTrackFromQueue(args *RemoveTrackFromQueueArgs) (*RemoveTrackFromQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveTrackFromQueue`, httpClient,
+	r, err := s.exec(`RemoveTrackFromQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -361,9 +383,9 @@ type RemoveTrackRangeFromQueueResponse struct {
 	NewUpdateID uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) RemoveTrackRangeFromQueue(httpClient *http.Client, args *RemoveTrackRangeFromQueueArgs) (*RemoveTrackRangeFromQueueResponse, error) {
+func (s *Service) RemoveTrackRangeFromQueue(args *RemoveTrackRangeFromQueueArgs) (*RemoveTrackRangeFromQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveTrackRangeFromQueue`, httpClient,
+	r, err := s.exec(`RemoveTrackRangeFromQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -386,9 +408,9 @@ type RemoveAllTracksFromQueueArgs struct {
 type RemoveAllTracksFromQueueResponse struct {
 }
 
-func (s *Service) RemoveAllTracksFromQueue(httpClient *http.Client, args *RemoveAllTracksFromQueueArgs) (*RemoveAllTracksFromQueueResponse, error) {
+func (s *Service) RemoveAllTracksFromQueue(args *RemoveAllTracksFromQueueArgs) (*RemoveAllTracksFromQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveAllTracksFromQueue`, httpClient,
+	r, err := s.exec(`RemoveAllTracksFromQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -414,9 +436,9 @@ type SaveQueueResponse struct {
 	AssignedObjectID string `xml:"AssignedObjectID"`
 }
 
-func (s *Service) SaveQueue(httpClient *http.Client, args *SaveQueueArgs) (*SaveQueueResponse, error) {
+func (s *Service) SaveQueue(args *SaveQueueArgs) (*SaveQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SaveQueue`, httpClient,
+	r, err := s.exec(`SaveQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -439,9 +461,9 @@ type BackupQueueArgs struct {
 type BackupQueueResponse struct {
 }
 
-func (s *Service) BackupQueue(httpClient *http.Client, args *BackupQueueArgs) (*BackupQueueResponse, error) {
+func (s *Service) BackupQueue(args *BackupQueueArgs) (*BackupQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`BackupQueue`, httpClient,
+	r, err := s.exec(`BackupQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -471,9 +493,9 @@ type CreateSavedQueueResponse struct {
 	NewUpdateID      uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) CreateSavedQueue(httpClient *http.Client, args *CreateSavedQueueArgs) (*CreateSavedQueueResponse, error) {
+func (s *Service) CreateSavedQueue(args *CreateSavedQueueArgs) (*CreateSavedQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`CreateSavedQueue`, httpClient,
+	r, err := s.exec(`CreateSavedQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -504,9 +526,9 @@ type AddURIToSavedQueueResponse struct {
 	NewUpdateID    uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) AddURIToSavedQueue(httpClient *http.Client, args *AddURIToSavedQueueArgs) (*AddURIToSavedQueueResponse, error) {
+func (s *Service) AddURIToSavedQueue(args *AddURIToSavedQueueArgs) (*AddURIToSavedQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddURIToSavedQueue`, httpClient,
+	r, err := s.exec(`AddURIToSavedQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -536,9 +558,9 @@ type ReorderTracksInSavedQueueResponse struct {
 	NewUpdateID       uint32 `xml:"NewUpdateID"`
 }
 
-func (s *Service) ReorderTracksInSavedQueue(httpClient *http.Client, args *ReorderTracksInSavedQueueArgs) (*ReorderTracksInSavedQueueResponse, error) {
+func (s *Service) ReorderTracksInSavedQueue(args *ReorderTracksInSavedQueueArgs) (*ReorderTracksInSavedQueueResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReorderTracksInSavedQueue`, httpClient,
+	r, err := s.exec(`ReorderTracksInSavedQueue`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -570,9 +592,9 @@ type GetMediaInfoResponse struct {
 	WriteStatus        string `xml:"WriteStatus"`
 }
 
-func (s *Service) GetMediaInfo(httpClient *http.Client, args *GetMediaInfoArgs) (*GetMediaInfoResponse, error) {
+func (s *Service) GetMediaInfo(args *GetMediaInfoArgs) (*GetMediaInfoResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetMediaInfo`, httpClient,
+	r, err := s.exec(`GetMediaInfo`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -598,9 +620,9 @@ type GetTransportInfoResponse struct {
 	CurrentSpeed           string `xml:"CurrentSpeed"`
 }
 
-func (s *Service) GetTransportInfo(httpClient *http.Client, args *GetTransportInfoArgs) (*GetTransportInfoResponse, error) {
+func (s *Service) GetTransportInfo(args *GetTransportInfoArgs) (*GetTransportInfoResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTransportInfo`, httpClient,
+	r, err := s.exec(`GetTransportInfo`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -631,9 +653,9 @@ type GetPositionInfoResponse struct {
 	AbsCount      int32  `xml:"AbsCount"`
 }
 
-func (s *Service) GetPositionInfo(httpClient *http.Client, args *GetPositionInfoArgs) (*GetPositionInfoResponse, error) {
+func (s *Service) GetPositionInfo(args *GetPositionInfoArgs) (*GetPositionInfoResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetPositionInfo`, httpClient,
+	r, err := s.exec(`GetPositionInfo`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -659,9 +681,9 @@ type GetDeviceCapabilitiesResponse struct {
 	RecQualityModes string `xml:"RecQualityModes"`
 }
 
-func (s *Service) GetDeviceCapabilities(httpClient *http.Client, args *GetDeviceCapabilitiesArgs) (*GetDeviceCapabilitiesResponse, error) {
+func (s *Service) GetDeviceCapabilities(args *GetDeviceCapabilitiesArgs) (*GetDeviceCapabilitiesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetDeviceCapabilities`, httpClient,
+	r, err := s.exec(`GetDeviceCapabilities`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -686,9 +708,9 @@ type GetTransportSettingsResponse struct {
 	RecQualityMode string `xml:"RecQualityMode"`
 }
 
-func (s *Service) GetTransportSettings(httpClient *http.Client, args *GetTransportSettingsArgs) (*GetTransportSettingsResponse, error) {
+func (s *Service) GetTransportSettings(args *GetTransportSettingsArgs) (*GetTransportSettingsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTransportSettings`, httpClient,
+	r, err := s.exec(`GetTransportSettings`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -712,9 +734,9 @@ type GetCrossfadeModeResponse struct {
 	CrossfadeMode bool `xml:"CrossfadeMode"`
 }
 
-func (s *Service) GetCrossfadeMode(httpClient *http.Client, args *GetCrossfadeModeArgs) (*GetCrossfadeModeResponse, error) {
+func (s *Service) GetCrossfadeMode(args *GetCrossfadeModeArgs) (*GetCrossfadeModeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetCrossfadeMode`, httpClient,
+	r, err := s.exec(`GetCrossfadeMode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -737,9 +759,9 @@ type StopArgs struct {
 type StopResponse struct {
 }
 
-func (s *Service) Stop(httpClient *http.Client, args *StopArgs) (*StopResponse, error) {
+func (s *Service) Stop(args *StopArgs) (*StopResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Stop`, httpClient,
+	r, err := s.exec(`Stop`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -764,9 +786,9 @@ type PlayArgs struct {
 type PlayResponse struct {
 }
 
-func (s *Service) Play(httpClient *http.Client, args *PlayArgs) (*PlayResponse, error) {
+func (s *Service) Play(args *PlayArgs) (*PlayResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Play`, httpClient,
+	r, err := s.exec(`Play`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -789,9 +811,9 @@ type PauseArgs struct {
 type PauseResponse struct {
 }
 
-func (s *Service) Pause(httpClient *http.Client, args *PauseArgs) (*PauseResponse, error) {
+func (s *Service) Pause(args *PauseArgs) (*PauseResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Pause`, httpClient,
+	r, err := s.exec(`Pause`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -819,9 +841,9 @@ type SeekArgs struct {
 type SeekResponse struct {
 }
 
-func (s *Service) Seek(httpClient *http.Client, args *SeekArgs) (*SeekResponse, error) {
+func (s *Service) Seek(args *SeekArgs) (*SeekResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Seek`, httpClient,
+	r, err := s.exec(`Seek`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -844,9 +866,9 @@ type NextArgs struct {
 type NextResponse struct {
 }
 
-func (s *Service) Next(httpClient *http.Client, args *NextArgs) (*NextResponse, error) {
+func (s *Service) Next(args *NextArgs) (*NextResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Next`, httpClient,
+	r, err := s.exec(`Next`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -869,9 +891,9 @@ type PreviousArgs struct {
 type PreviousResponse struct {
 }
 
-func (s *Service) Previous(httpClient *http.Client, args *PreviousArgs) (*PreviousResponse, error) {
+func (s *Service) Previous(args *PreviousArgs) (*PreviousResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Previous`, httpClient,
+	r, err := s.exec(`Previous`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -901,9 +923,9 @@ type SetPlayModeArgs struct {
 type SetPlayModeResponse struct {
 }
 
-func (s *Service) SetPlayMode(httpClient *http.Client, args *SetPlayModeArgs) (*SetPlayModeResponse, error) {
+func (s *Service) SetPlayMode(args *SetPlayModeArgs) (*SetPlayModeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetPlayMode`, httpClient,
+	r, err := s.exec(`SetPlayMode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -927,9 +949,9 @@ type SetCrossfadeModeArgs struct {
 type SetCrossfadeModeResponse struct {
 }
 
-func (s *Service) SetCrossfadeMode(httpClient *http.Client, args *SetCrossfadeModeArgs) (*SetCrossfadeModeResponse, error) {
+func (s *Service) SetCrossfadeMode(args *SetCrossfadeModeArgs) (*SetCrossfadeModeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetCrossfadeMode`, httpClient,
+	r, err := s.exec(`SetCrossfadeMode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -953,9 +975,9 @@ type NotifyDeletedURIArgs struct {
 type NotifyDeletedURIResponse struct {
 }
 
-func (s *Service) NotifyDeletedURI(httpClient *http.Client, args *NotifyDeletedURIArgs) (*NotifyDeletedURIResponse, error) {
+func (s *Service) NotifyDeletedURI(args *NotifyDeletedURIArgs) (*NotifyDeletedURIResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`NotifyDeletedURI`, httpClient,
+	r, err := s.exec(`NotifyDeletedURI`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -979,9 +1001,9 @@ type GetCurrentTransportActionsResponse struct {
 	Actions string `xml:"Actions"`
 }
 
-func (s *Service) GetCurrentTransportActions(httpClient *http.Client, args *GetCurrentTransportActionsArgs) (*GetCurrentTransportActionsResponse, error) {
+func (s *Service) GetCurrentTransportActions(args *GetCurrentTransportActionsArgs) (*GetCurrentTransportActionsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetCurrentTransportActions`, httpClient,
+	r, err := s.exec(`GetCurrentTransportActions`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1006,9 +1028,9 @@ type BecomeCoordinatorOfStandaloneGroupResponse struct {
 	NewGroupID                  string `xml:"NewGroupID"`
 }
 
-func (s *Service) BecomeCoordinatorOfStandaloneGroup(httpClient *http.Client, args *BecomeCoordinatorOfStandaloneGroupArgs) (*BecomeCoordinatorOfStandaloneGroupResponse, error) {
+func (s *Service) BecomeCoordinatorOfStandaloneGroup(args *BecomeCoordinatorOfStandaloneGroupArgs) (*BecomeCoordinatorOfStandaloneGroupResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`BecomeCoordinatorOfStandaloneGroup`, httpClient,
+	r, err := s.exec(`BecomeCoordinatorOfStandaloneGroup`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1033,9 +1055,9 @@ type DelegateGroupCoordinationToArgs struct {
 type DelegateGroupCoordinationToResponse struct {
 }
 
-func (s *Service) DelegateGroupCoordinationTo(httpClient *http.Client, args *DelegateGroupCoordinationToArgs) (*DelegateGroupCoordinationToResponse, error) {
+func (s *Service) DelegateGroupCoordinationTo(args *DelegateGroupCoordinationToArgs) (*DelegateGroupCoordinationToResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`DelegateGroupCoordinationTo`, httpClient,
+	r, err := s.exec(`DelegateGroupCoordinationTo`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1069,9 +1091,9 @@ type BecomeGroupCoordinatorArgs struct {
 type BecomeGroupCoordinatorResponse struct {
 }
 
-func (s *Service) BecomeGroupCoordinator(httpClient *http.Client, args *BecomeGroupCoordinatorArgs) (*BecomeGroupCoordinatorResponse, error) {
+func (s *Service) BecomeGroupCoordinator(args *BecomeGroupCoordinatorArgs) (*BecomeGroupCoordinatorResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`BecomeGroupCoordinator`, httpClient,
+	r, err := s.exec(`BecomeGroupCoordinator`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1106,9 +1128,9 @@ type BecomeGroupCoordinatorAndSourceArgs struct {
 type BecomeGroupCoordinatorAndSourceResponse struct {
 }
 
-func (s *Service) BecomeGroupCoordinatorAndSource(httpClient *http.Client, args *BecomeGroupCoordinatorAndSourceArgs) (*BecomeGroupCoordinatorAndSourceResponse, error) {
+func (s *Service) BecomeGroupCoordinatorAndSource(args *BecomeGroupCoordinatorAndSourceArgs) (*BecomeGroupCoordinatorAndSourceResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`BecomeGroupCoordinatorAndSource`, httpClient,
+	r, err := s.exec(`BecomeGroupCoordinatorAndSource`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1135,9 +1157,9 @@ type ChangeCoordinatorArgs struct {
 type ChangeCoordinatorResponse struct {
 }
 
-func (s *Service) ChangeCoordinator(httpClient *http.Client, args *ChangeCoordinatorArgs) (*ChangeCoordinatorResponse, error) {
+func (s *Service) ChangeCoordinator(args *ChangeCoordinatorArgs) (*ChangeCoordinatorResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ChangeCoordinator`, httpClient,
+	r, err := s.exec(`ChangeCoordinator`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1162,9 +1184,9 @@ type ChangeTransportSettingsArgs struct {
 type ChangeTransportSettingsResponse struct {
 }
 
-func (s *Service) ChangeTransportSettings(httpClient *http.Client, args *ChangeTransportSettingsArgs) (*ChangeTransportSettingsResponse, error) {
+func (s *Service) ChangeTransportSettings(args *ChangeTransportSettingsArgs) (*ChangeTransportSettingsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ChangeTransportSettings`, httpClient,
+	r, err := s.exec(`ChangeTransportSettings`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1188,9 +1210,9 @@ type ConfigureSleepTimerArgs struct {
 type ConfigureSleepTimerResponse struct {
 }
 
-func (s *Service) ConfigureSleepTimer(httpClient *http.Client, args *ConfigureSleepTimerArgs) (*ConfigureSleepTimerResponse, error) {
+func (s *Service) ConfigureSleepTimer(args *ConfigureSleepTimerArgs) (*ConfigureSleepTimerResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ConfigureSleepTimer`, httpClient,
+	r, err := s.exec(`ConfigureSleepTimer`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1215,9 +1237,9 @@ type GetRemainingSleepTimerDurationResponse struct {
 	CurrentSleepTimerGeneration uint32 `xml:"CurrentSleepTimerGeneration"`
 }
 
-func (s *Service) GetRemainingSleepTimerDuration(httpClient *http.Client, args *GetRemainingSleepTimerDurationArgs) (*GetRemainingSleepTimerDurationResponse, error) {
+func (s *Service) GetRemainingSleepTimerDuration(args *GetRemainingSleepTimerDurationArgs) (*GetRemainingSleepTimerDurationResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetRemainingSleepTimerDuration`, httpClient,
+	r, err := s.exec(`GetRemainingSleepTimerDuration`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1254,9 +1276,9 @@ type RunAlarmArgs struct {
 type RunAlarmResponse struct {
 }
 
-func (s *Service) RunAlarm(httpClient *http.Client, args *RunAlarmArgs) (*RunAlarmResponse, error) {
+func (s *Service) RunAlarm(args *RunAlarmArgs) (*RunAlarmResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RunAlarm`, httpClient,
+	r, err := s.exec(`RunAlarm`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1284,9 +1306,9 @@ type StartAutoplayArgs struct {
 type StartAutoplayResponse struct {
 }
 
-func (s *Service) StartAutoplay(httpClient *http.Client, args *StartAutoplayArgs) (*StartAutoplayResponse, error) {
+func (s *Service) StartAutoplay(args *StartAutoplayArgs) (*StartAutoplayResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`StartAutoplay`, httpClient,
+	r, err := s.exec(`StartAutoplay`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1312,9 +1334,9 @@ type GetRunningAlarmPropertiesResponse struct {
 	LoggedStartTime string `xml:"LoggedStartTime"`
 }
 
-func (s *Service) GetRunningAlarmProperties(httpClient *http.Client, args *GetRunningAlarmPropertiesArgs) (*GetRunningAlarmPropertiesResponse, error) {
+func (s *Service) GetRunningAlarmProperties(args *GetRunningAlarmPropertiesArgs) (*GetRunningAlarmPropertiesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetRunningAlarmProperties`, httpClient,
+	r, err := s.exec(`GetRunningAlarmProperties`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1338,9 +1360,9 @@ type SnoozeAlarmArgs struct {
 type SnoozeAlarmResponse struct {
 }
 
-func (s *Service) SnoozeAlarm(httpClient *http.Client, args *SnoozeAlarmArgs) (*SnoozeAlarmResponse, error) {
+func (s *Service) SnoozeAlarm(args *SnoozeAlarmArgs) (*SnoozeAlarmResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SnoozeAlarm`, httpClient,
+	r, err := s.exec(`SnoozeAlarm`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -1363,9 +1385,9 @@ type EndDirectControlSessionArgs struct {
 type EndDirectControlSessionResponse struct {
 }
 
-func (s *Service) EndDirectControlSession(httpClient *http.Client, args *EndDirectControlSessionArgs) (*EndDirectControlSessionResponse, error) {
+func (s *Service) EndDirectControlSession(args *EndDirectControlSessionArgs) (*EndDirectControlSessionResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`EndDirectControlSession`, httpClient,
+	r, err := s.exec(`EndDirectControlSession`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

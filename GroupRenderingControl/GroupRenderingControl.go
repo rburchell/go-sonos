@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaRenderer/GroupRenderingControl/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaRenderer/GroupRenderingControl/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaRenderer/GroupRenderingControl/Event`)
+	e, err := url.Parse("/MediaRenderer/GroupRenderingControl/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -69,20 +91,20 @@ type BodyResponse struct {
 	SnapshotGroupVolume    *SnapshotGroupVolumeResponse    `xml:"SnapshotGroupVolumeResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -107,9 +129,9 @@ type GetGroupMuteResponse struct {
 	CurrentMute bool `xml:"CurrentMute"`
 }
 
-func (s *Service) GetGroupMute(httpClient *http.Client, args *GetGroupMuteArgs) (*GetGroupMuteResponse, error) {
+func (s *Service) GetGroupMute(args *GetGroupMuteArgs) (*GetGroupMuteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetGroupMute`, httpClient,
+	r, err := s.exec(`GetGroupMute`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -133,9 +155,9 @@ type SetGroupMuteArgs struct {
 type SetGroupMuteResponse struct {
 }
 
-func (s *Service) SetGroupMute(httpClient *http.Client, args *SetGroupMuteArgs) (*SetGroupMuteResponse, error) {
+func (s *Service) SetGroupMute(args *SetGroupMuteArgs) (*SetGroupMuteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetGroupMute`, httpClient,
+	r, err := s.exec(`SetGroupMute`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -159,9 +181,9 @@ type GetGroupVolumeResponse struct {
 	CurrentVolume uint16 `xml:"CurrentVolume"`
 }
 
-func (s *Service) GetGroupVolume(httpClient *http.Client, args *GetGroupVolumeArgs) (*GetGroupVolumeResponse, error) {
+func (s *Service) GetGroupVolume(args *GetGroupVolumeArgs) (*GetGroupVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetGroupVolume`, httpClient,
+	r, err := s.exec(`GetGroupVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -186,9 +208,9 @@ type SetGroupVolumeArgs struct {
 type SetGroupVolumeResponse struct {
 }
 
-func (s *Service) SetGroupVolume(httpClient *http.Client, args *SetGroupVolumeArgs) (*SetGroupVolumeResponse, error) {
+func (s *Service) SetGroupVolume(args *SetGroupVolumeArgs) (*SetGroupVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetGroupVolume`, httpClient,
+	r, err := s.exec(`SetGroupVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -213,9 +235,9 @@ type SetRelativeGroupVolumeResponse struct {
 	NewVolume uint16 `xml:"NewVolume"`
 }
 
-func (s *Service) SetRelativeGroupVolume(httpClient *http.Client, args *SetRelativeGroupVolumeArgs) (*SetRelativeGroupVolumeResponse, error) {
+func (s *Service) SetRelativeGroupVolume(args *SetRelativeGroupVolumeArgs) (*SetRelativeGroupVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetRelativeGroupVolume`, httpClient,
+	r, err := s.exec(`SetRelativeGroupVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -238,9 +260,9 @@ type SnapshotGroupVolumeArgs struct {
 type SnapshotGroupVolumeResponse struct {
 }
 
-func (s *Service) SnapshotGroupVolume(httpClient *http.Client, args *SnapshotGroupVolumeArgs) (*SnapshotGroupVolumeResponse, error) {
+func (s *Service) SnapshotGroupVolume(args *SnapshotGroupVolumeArgs) (*SnapshotGroupVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SnapshotGroupVolume`, httpClient,
+	r, err := s.exec(`SnapshotGroupVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

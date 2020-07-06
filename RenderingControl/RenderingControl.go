@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaRenderer/RenderingControl/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaRenderer/RenderingControl/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaRenderer/RenderingControl/Event`)
+	e, err := url.Parse("/MediaRenderer/RenderingControl/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -113,20 +135,20 @@ type BodyResponse struct {
 	SetRoomCalibrationStatus *SetRoomCalibrationStatusResponse `xml:"SetRoomCalibrationStatusResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -156,9 +178,9 @@ type GetMuteResponse struct {
 	CurrentMute bool `xml:"CurrentMute"`
 }
 
-func (s *Service) GetMute(httpClient *http.Client, args *GetMuteArgs) (*GetMuteResponse, error) {
+func (s *Service) GetMute(args *GetMuteArgs) (*GetMuteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetMute`, httpClient,
+	r, err := s.exec(`GetMute`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -187,9 +209,9 @@ type SetMuteArgs struct {
 type SetMuteResponse struct {
 }
 
-func (s *Service) SetMute(httpClient *http.Client, args *SetMuteArgs) (*SetMuteResponse, error) {
+func (s *Service) SetMute(args *SetMuteArgs) (*SetMuteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetMute`, httpClient,
+	r, err := s.exec(`SetMute`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -217,9 +239,9 @@ type ResetBasicEQResponse struct {
 	RightVolume uint16 `xml:"RightVolume"`
 }
 
-func (s *Service) ResetBasicEQ(httpClient *http.Client, args *ResetBasicEQArgs) (*ResetBasicEQResponse, error) {
+func (s *Service) ResetBasicEQ(args *ResetBasicEQArgs) (*ResetBasicEQResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ResetBasicEQ`, httpClient,
+	r, err := s.exec(`ResetBasicEQ`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -243,9 +265,9 @@ type ResetExtEQArgs struct {
 type ResetExtEQResponse struct {
 }
 
-func (s *Service) ResetExtEQ(httpClient *http.Client, args *ResetExtEQArgs) (*ResetExtEQResponse, error) {
+func (s *Service) ResetExtEQ(args *ResetExtEQArgs) (*ResetExtEQResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ResetExtEQ`, httpClient,
+	r, err := s.exec(`ResetExtEQ`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -273,9 +295,9 @@ type GetVolumeResponse struct {
 	CurrentVolume uint16 `xml:"CurrentVolume"`
 }
 
-func (s *Service) GetVolume(httpClient *http.Client, args *GetVolumeArgs) (*GetVolumeResponse, error) {
+func (s *Service) GetVolume(args *GetVolumeArgs) (*GetVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetVolume`, httpClient,
+	r, err := s.exec(`GetVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -304,9 +326,9 @@ type SetVolumeArgs struct {
 type SetVolumeResponse struct {
 }
 
-func (s *Service) SetVolume(httpClient *http.Client, args *SetVolumeArgs) (*SetVolumeResponse, error) {
+func (s *Service) SetVolume(args *SetVolumeArgs) (*SetVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetVolume`, httpClient,
+	r, err := s.exec(`SetVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -335,9 +357,9 @@ type SetRelativeVolumeResponse struct {
 	NewVolume uint16 `xml:"NewVolume"`
 }
 
-func (s *Service) SetRelativeVolume(httpClient *http.Client, args *SetRelativeVolumeArgs) (*SetRelativeVolumeResponse, error) {
+func (s *Service) SetRelativeVolume(args *SetRelativeVolumeArgs) (*SetRelativeVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetRelativeVolume`, httpClient,
+	r, err := s.exec(`SetRelativeVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -365,9 +387,9 @@ type GetVolumeDBResponse struct {
 	CurrentVolume int16 `xml:"CurrentVolume"`
 }
 
-func (s *Service) GetVolumeDB(httpClient *http.Client, args *GetVolumeDBArgs) (*GetVolumeDBResponse, error) {
+func (s *Service) GetVolumeDB(args *GetVolumeDBArgs) (*GetVolumeDBResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetVolumeDB`, httpClient,
+	r, err := s.exec(`GetVolumeDB`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -395,9 +417,9 @@ type SetVolumeDBArgs struct {
 type SetVolumeDBResponse struct {
 }
 
-func (s *Service) SetVolumeDB(httpClient *http.Client, args *SetVolumeDBArgs) (*SetVolumeDBResponse, error) {
+func (s *Service) SetVolumeDB(args *SetVolumeDBArgs) (*SetVolumeDBResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetVolumeDB`, httpClient,
+	r, err := s.exec(`SetVolumeDB`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -426,9 +448,9 @@ type GetVolumeDBRangeResponse struct {
 	MaxValue int16 `xml:"MaxValue"`
 }
 
-func (s *Service) GetVolumeDBRange(httpClient *http.Client, args *GetVolumeDBRangeArgs) (*GetVolumeDBRangeResponse, error) {
+func (s *Service) GetVolumeDBRange(args *GetVolumeDBRangeArgs) (*GetVolumeDBRangeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetVolumeDBRange`, httpClient,
+	r, err := s.exec(`GetVolumeDBRange`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -452,9 +474,9 @@ type GetBassResponse struct {
 	CurrentBass int16 `xml:"CurrentBass"`
 }
 
-func (s *Service) GetBass(httpClient *http.Client, args *GetBassArgs) (*GetBassResponse, error) {
+func (s *Service) GetBass(args *GetBassArgs) (*GetBassResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetBass`, httpClient,
+	r, err := s.exec(`GetBass`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -479,9 +501,9 @@ type SetBassArgs struct {
 type SetBassResponse struct {
 }
 
-func (s *Service) SetBass(httpClient *http.Client, args *SetBassArgs) (*SetBassResponse, error) {
+func (s *Service) SetBass(args *SetBassArgs) (*SetBassResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetBass`, httpClient,
+	r, err := s.exec(`SetBass`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -505,9 +527,9 @@ type GetTrebleResponse struct {
 	CurrentTreble int16 `xml:"CurrentTreble"`
 }
 
-func (s *Service) GetTreble(httpClient *http.Client, args *GetTrebleArgs) (*GetTrebleResponse, error) {
+func (s *Service) GetTreble(args *GetTrebleArgs) (*GetTrebleResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTreble`, httpClient,
+	r, err := s.exec(`GetTreble`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -532,9 +554,9 @@ type SetTrebleArgs struct {
 type SetTrebleResponse struct {
 }
 
-func (s *Service) SetTreble(httpClient *http.Client, args *SetTrebleArgs) (*SetTrebleResponse, error) {
+func (s *Service) SetTreble(args *SetTrebleArgs) (*SetTrebleResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetTreble`, httpClient,
+	r, err := s.exec(`SetTreble`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -559,9 +581,9 @@ type GetEQResponse struct {
 	CurrentValue int16 `xml:"CurrentValue"`
 }
 
-func (s *Service) GetEQ(httpClient *http.Client, args *GetEQArgs) (*GetEQResponse, error) {
+func (s *Service) GetEQ(args *GetEQArgs) (*GetEQResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetEQ`, httpClient,
+	r, err := s.exec(`GetEQ`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -586,9 +608,9 @@ type SetEQArgs struct {
 type SetEQResponse struct {
 }
 
-func (s *Service) SetEQ(httpClient *http.Client, args *SetEQArgs) (*SetEQResponse, error) {
+func (s *Service) SetEQ(args *SetEQArgs) (*SetEQResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetEQ`, httpClient,
+	r, err := s.exec(`SetEQ`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -616,9 +638,9 @@ type GetLoudnessResponse struct {
 	CurrentLoudness bool `xml:"CurrentLoudness"`
 }
 
-func (s *Service) GetLoudness(httpClient *http.Client, args *GetLoudnessArgs) (*GetLoudnessResponse, error) {
+func (s *Service) GetLoudness(args *GetLoudnessArgs) (*GetLoudnessResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetLoudness`, httpClient,
+	r, err := s.exec(`GetLoudness`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -646,9 +668,9 @@ type SetLoudnessArgs struct {
 type SetLoudnessResponse struct {
 }
 
-func (s *Service) SetLoudness(httpClient *http.Client, args *SetLoudnessArgs) (*SetLoudnessResponse, error) {
+func (s *Service) SetLoudness(args *SetLoudnessArgs) (*SetLoudnessResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetLoudness`, httpClient,
+	r, err := s.exec(`SetLoudness`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -672,9 +694,9 @@ type GetSupportsOutputFixedResponse struct {
 	CurrentSupportsFixed bool `xml:"CurrentSupportsFixed"`
 }
 
-func (s *Service) GetSupportsOutputFixed(httpClient *http.Client, args *GetSupportsOutputFixedArgs) (*GetSupportsOutputFixedResponse, error) {
+func (s *Service) GetSupportsOutputFixed(args *GetSupportsOutputFixedArgs) (*GetSupportsOutputFixedResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetSupportsOutputFixed`, httpClient,
+	r, err := s.exec(`GetSupportsOutputFixed`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -698,9 +720,9 @@ type GetOutputFixedResponse struct {
 	CurrentFixed bool `xml:"CurrentFixed"`
 }
 
-func (s *Service) GetOutputFixed(httpClient *http.Client, args *GetOutputFixedArgs) (*GetOutputFixedResponse, error) {
+func (s *Service) GetOutputFixed(args *GetOutputFixedArgs) (*GetOutputFixedResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetOutputFixed`, httpClient,
+	r, err := s.exec(`GetOutputFixed`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -724,9 +746,9 @@ type SetOutputFixedArgs struct {
 type SetOutputFixedResponse struct {
 }
 
-func (s *Service) SetOutputFixed(httpClient *http.Client, args *SetOutputFixedArgs) (*SetOutputFixedResponse, error) {
+func (s *Service) SetOutputFixed(args *SetOutputFixedArgs) (*SetOutputFixedResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetOutputFixed`, httpClient,
+	r, err := s.exec(`SetOutputFixed`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -750,9 +772,9 @@ type GetHeadphoneConnectedResponse struct {
 	CurrentHeadphoneConnected bool `xml:"CurrentHeadphoneConnected"`
 }
 
-func (s *Service) GetHeadphoneConnected(httpClient *http.Client, args *GetHeadphoneConnectedArgs) (*GetHeadphoneConnectedResponse, error) {
+func (s *Service) GetHeadphoneConnected(args *GetHeadphoneConnectedArgs) (*GetHeadphoneConnectedResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetHeadphoneConnected`, httpClient,
+	r, err := s.exec(`GetHeadphoneConnected`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -788,9 +810,9 @@ type RampToVolumeResponse struct {
 	RampTime uint32 `xml:"RampTime"`
 }
 
-func (s *Service) RampToVolume(httpClient *http.Client, args *RampToVolumeArgs) (*RampToVolumeResponse, error) {
+func (s *Service) RampToVolume(args *RampToVolumeArgs) (*RampToVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RampToVolume`, httpClient,
+	r, err := s.exec(`RampToVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -817,9 +839,9 @@ type RestoreVolumePriorToRampArgs struct {
 type RestoreVolumePriorToRampResponse struct {
 }
 
-func (s *Service) RestoreVolumePriorToRamp(httpClient *http.Client, args *RestoreVolumePriorToRampArgs) (*RestoreVolumePriorToRampResponse, error) {
+func (s *Service) RestoreVolumePriorToRamp(args *RestoreVolumePriorToRampArgs) (*RestoreVolumePriorToRampResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RestoreVolumePriorToRamp`, httpClient,
+	r, err := s.exec(`RestoreVolumePriorToRamp`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -843,9 +865,9 @@ type SetChannelMapArgs struct {
 type SetChannelMapResponse struct {
 }
 
-func (s *Service) SetChannelMap(httpClient *http.Client, args *SetChannelMapArgs) (*SetChannelMapResponse, error) {
+func (s *Service) SetChannelMap(args *SetChannelMapArgs) (*SetChannelMapResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetChannelMap`, httpClient,
+	r, err := s.exec(`SetChannelMap`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -871,9 +893,9 @@ type SetRoomCalibrationXArgs struct {
 type SetRoomCalibrationXResponse struct {
 }
 
-func (s *Service) SetRoomCalibrationX(httpClient *http.Client, args *SetRoomCalibrationXArgs) (*SetRoomCalibrationXResponse, error) {
+func (s *Service) SetRoomCalibrationX(args *SetRoomCalibrationXArgs) (*SetRoomCalibrationXResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetRoomCalibrationX`, httpClient,
+	r, err := s.exec(`SetRoomCalibrationX`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -898,9 +920,9 @@ type GetRoomCalibrationStatusResponse struct {
 	RoomCalibrationAvailable bool `xml:"RoomCalibrationAvailable"`
 }
 
-func (s *Service) GetRoomCalibrationStatus(httpClient *http.Client, args *GetRoomCalibrationStatusArgs) (*GetRoomCalibrationStatusResponse, error) {
+func (s *Service) GetRoomCalibrationStatus(args *GetRoomCalibrationStatusArgs) (*GetRoomCalibrationStatusResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetRoomCalibrationStatus`, httpClient,
+	r, err := s.exec(`GetRoomCalibrationStatus`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -924,9 +946,9 @@ type SetRoomCalibrationStatusArgs struct {
 type SetRoomCalibrationStatusResponse struct {
 }
 
-func (s *Service) SetRoomCalibrationStatus(httpClient *http.Client, args *SetRoomCalibrationStatusArgs) (*SetRoomCalibrationStatusResponse, error) {
+func (s *Service) SetRoomCalibrationStatus(args *SetRoomCalibrationStatusArgs) (*SetRoomCalibrationStatusResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetRoomCalibrationStatus`, httpClient,
+	r, err := s.exec(`SetRoomCalibrationStatus`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/DeviceProperties/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/DeviceProperties/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/DeviceProperties/Event`)
+	e, err := url.Parse("/DeviceProperties/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -107,20 +129,20 @@ type BodyResponse struct {
 	GetButtonLockState     *GetButtonLockStateResponse     `xml:"GetButtonLockStateResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -146,9 +168,9 @@ type SetLEDStateArgs struct {
 type SetLEDStateResponse struct {
 }
 
-func (s *Service) SetLEDState(httpClient *http.Client, args *SetLEDStateArgs) (*SetLEDStateResponse, error) {
+func (s *Service) SetLEDState(args *SetLEDStateArgs) (*SetLEDStateResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetLEDState`, httpClient,
+	r, err := s.exec(`SetLEDState`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -171,9 +193,9 @@ type GetLEDStateResponse struct {
 	CurrentLEDState string `xml:"CurrentLEDState"`
 }
 
-func (s *Service) GetLEDState(httpClient *http.Client, args *GetLEDStateArgs) (*GetLEDStateResponse, error) {
+func (s *Service) GetLEDState(args *GetLEDStateArgs) (*GetLEDStateResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetLEDState`, httpClient,
+	r, err := s.exec(`GetLEDState`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -196,9 +218,9 @@ type AddBondedZonesArgs struct {
 type AddBondedZonesResponse struct {
 }
 
-func (s *Service) AddBondedZones(httpClient *http.Client, args *AddBondedZonesArgs) (*AddBondedZonesResponse, error) {
+func (s *Service) AddBondedZones(args *AddBondedZonesArgs) (*AddBondedZonesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddBondedZones`, httpClient,
+	r, err := s.exec(`AddBondedZones`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -222,9 +244,9 @@ type RemoveBondedZonesArgs struct {
 type RemoveBondedZonesResponse struct {
 }
 
-func (s *Service) RemoveBondedZones(httpClient *http.Client, args *RemoveBondedZonesArgs) (*RemoveBondedZonesResponse, error) {
+func (s *Service) RemoveBondedZones(args *RemoveBondedZonesArgs) (*RemoveBondedZonesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveBondedZones`, httpClient,
+	r, err := s.exec(`RemoveBondedZones`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -247,9 +269,9 @@ type CreateStereoPairArgs struct {
 type CreateStereoPairResponse struct {
 }
 
-func (s *Service) CreateStereoPair(httpClient *http.Client, args *CreateStereoPairArgs) (*CreateStereoPairResponse, error) {
+func (s *Service) CreateStereoPair(args *CreateStereoPairArgs) (*CreateStereoPairResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`CreateStereoPair`, httpClient,
+	r, err := s.exec(`CreateStereoPair`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -272,9 +294,9 @@ type SeparateStereoPairArgs struct {
 type SeparateStereoPairResponse struct {
 }
 
-func (s *Service) SeparateStereoPair(httpClient *http.Client, args *SeparateStereoPairArgs) (*SeparateStereoPairResponse, error) {
+func (s *Service) SeparateStereoPair(args *SeparateStereoPairArgs) (*SeparateStereoPairResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SeparateStereoPair`, httpClient,
+	r, err := s.exec(`SeparateStereoPair`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -299,9 +321,9 @@ type SetZoneAttributesArgs struct {
 type SetZoneAttributesResponse struct {
 }
 
-func (s *Service) SetZoneAttributes(httpClient *http.Client, args *SetZoneAttributesArgs) (*SetZoneAttributesResponse, error) {
+func (s *Service) SetZoneAttributes(args *SetZoneAttributesArgs) (*SetZoneAttributesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetZoneAttributes`, httpClient,
+	r, err := s.exec(`SetZoneAttributes`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -326,9 +348,9 @@ type GetZoneAttributesResponse struct {
 	CurrentConfiguration string `xml:"CurrentConfiguration"`
 }
 
-func (s *Service) GetZoneAttributes(httpClient *http.Client, args *GetZoneAttributesArgs) (*GetZoneAttributesResponse, error) {
+func (s *Service) GetZoneAttributes(args *GetZoneAttributesArgs) (*GetZoneAttributesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetZoneAttributes`, httpClient,
+	r, err := s.exec(`GetZoneAttributes`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -351,9 +373,9 @@ type GetHouseholdIDResponse struct {
 	CurrentHouseholdID string `xml:"CurrentHouseholdID"`
 }
 
-func (s *Service) GetHouseholdID(httpClient *http.Client, args *GetHouseholdIDArgs) (*GetHouseholdIDResponse, error) {
+func (s *Service) GetHouseholdID(args *GetHouseholdIDArgs) (*GetHouseholdIDResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetHouseholdID`, httpClient,
+	r, err := s.exec(`GetHouseholdID`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -385,9 +407,9 @@ type GetZoneInfoResponse struct {
 	Flags                  uint32 `xml:"Flags"`
 }
 
-func (s *Service) GetZoneInfo(httpClient *http.Client, args *GetZoneInfoArgs) (*GetZoneInfoResponse, error) {
+func (s *Service) GetZoneInfo(args *GetZoneInfoArgs) (*GetZoneInfoResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetZoneInfo`, httpClient,
+	r, err := s.exec(`GetZoneInfo`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -411,9 +433,9 @@ type SetAutoplayLinkedZonesArgs struct {
 type SetAutoplayLinkedZonesResponse struct {
 }
 
-func (s *Service) SetAutoplayLinkedZones(httpClient *http.Client, args *SetAutoplayLinkedZonesArgs) (*SetAutoplayLinkedZonesResponse, error) {
+func (s *Service) SetAutoplayLinkedZones(args *SetAutoplayLinkedZonesArgs) (*SetAutoplayLinkedZonesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetAutoplayLinkedZones`, httpClient,
+	r, err := s.exec(`SetAutoplayLinkedZones`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -437,9 +459,9 @@ type GetAutoplayLinkedZonesResponse struct {
 	IncludeLinkedZones bool `xml:"IncludeLinkedZones"`
 }
 
-func (s *Service) GetAutoplayLinkedZones(httpClient *http.Client, args *GetAutoplayLinkedZonesArgs) (*GetAutoplayLinkedZonesResponse, error) {
+func (s *Service) GetAutoplayLinkedZones(args *GetAutoplayLinkedZonesArgs) (*GetAutoplayLinkedZonesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetAutoplayLinkedZones`, httpClient,
+	r, err := s.exec(`GetAutoplayLinkedZones`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -463,9 +485,9 @@ type SetAutoplayRoomUUIDArgs struct {
 type SetAutoplayRoomUUIDResponse struct {
 }
 
-func (s *Service) SetAutoplayRoomUUID(httpClient *http.Client, args *SetAutoplayRoomUUIDArgs) (*SetAutoplayRoomUUIDResponse, error) {
+func (s *Service) SetAutoplayRoomUUID(args *SetAutoplayRoomUUIDArgs) (*SetAutoplayRoomUUIDResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetAutoplayRoomUUID`, httpClient,
+	r, err := s.exec(`SetAutoplayRoomUUID`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -489,9 +511,9 @@ type GetAutoplayRoomUUIDResponse struct {
 	RoomUUID string `xml:"RoomUUID"`
 }
 
-func (s *Service) GetAutoplayRoomUUID(httpClient *http.Client, args *GetAutoplayRoomUUIDArgs) (*GetAutoplayRoomUUIDResponse, error) {
+func (s *Service) GetAutoplayRoomUUID(args *GetAutoplayRoomUUIDArgs) (*GetAutoplayRoomUUIDResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetAutoplayRoomUUID`, httpClient,
+	r, err := s.exec(`GetAutoplayRoomUUID`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -516,9 +538,9 @@ type SetAutoplayVolumeArgs struct {
 type SetAutoplayVolumeResponse struct {
 }
 
-func (s *Service) SetAutoplayVolume(httpClient *http.Client, args *SetAutoplayVolumeArgs) (*SetAutoplayVolumeResponse, error) {
+func (s *Service) SetAutoplayVolume(args *SetAutoplayVolumeArgs) (*SetAutoplayVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetAutoplayVolume`, httpClient,
+	r, err := s.exec(`SetAutoplayVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -542,9 +564,9 @@ type GetAutoplayVolumeResponse struct {
 	CurrentVolume uint16 `xml:"CurrentVolume"`
 }
 
-func (s *Service) GetAutoplayVolume(httpClient *http.Client, args *GetAutoplayVolumeArgs) (*GetAutoplayVolumeResponse, error) {
+func (s *Service) GetAutoplayVolume(args *GetAutoplayVolumeArgs) (*GetAutoplayVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetAutoplayVolume`, httpClient,
+	r, err := s.exec(`GetAutoplayVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -568,9 +590,9 @@ type SetUseAutoplayVolumeArgs struct {
 type SetUseAutoplayVolumeResponse struct {
 }
 
-func (s *Service) SetUseAutoplayVolume(httpClient *http.Client, args *SetUseAutoplayVolumeArgs) (*SetUseAutoplayVolumeResponse, error) {
+func (s *Service) SetUseAutoplayVolume(args *SetUseAutoplayVolumeArgs) (*SetUseAutoplayVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetUseAutoplayVolume`, httpClient,
+	r, err := s.exec(`SetUseAutoplayVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -594,9 +616,9 @@ type GetUseAutoplayVolumeResponse struct {
 	UseVolume bool `xml:"UseVolume"`
 }
 
-func (s *Service) GetUseAutoplayVolume(httpClient *http.Client, args *GetUseAutoplayVolumeArgs) (*GetUseAutoplayVolumeResponse, error) {
+func (s *Service) GetUseAutoplayVolume(args *GetUseAutoplayVolumeArgs) (*GetUseAutoplayVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetUseAutoplayVolume`, httpClient,
+	r, err := s.exec(`GetUseAutoplayVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -619,9 +641,9 @@ type AddHTSatelliteArgs struct {
 type AddHTSatelliteResponse struct {
 }
 
-func (s *Service) AddHTSatellite(httpClient *http.Client, args *AddHTSatelliteArgs) (*AddHTSatelliteResponse, error) {
+func (s *Service) AddHTSatellite(args *AddHTSatelliteArgs) (*AddHTSatelliteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddHTSatellite`, httpClient,
+	r, err := s.exec(`AddHTSatellite`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -644,9 +666,9 @@ type RemoveHTSatelliteArgs struct {
 type RemoveHTSatelliteResponse struct {
 }
 
-func (s *Service) RemoveHTSatellite(httpClient *http.Client, args *RemoveHTSatelliteArgs) (*RemoveHTSatelliteResponse, error) {
+func (s *Service) RemoveHTSatellite(args *RemoveHTSatelliteArgs) (*RemoveHTSatelliteResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveHTSatellite`, httpClient,
+	r, err := s.exec(`RemoveHTSatellite`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -671,9 +693,9 @@ type EnterConfigModeResponse struct {
 	State string `xml:"State"`
 }
 
-func (s *Service) EnterConfigMode(httpClient *http.Client, args *EnterConfigModeArgs) (*EnterConfigModeResponse, error) {
+func (s *Service) EnterConfigMode(args *EnterConfigModeArgs) (*EnterConfigModeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`EnterConfigMode`, httpClient,
+	r, err := s.exec(`EnterConfigMode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -696,9 +718,9 @@ type ExitConfigModeArgs struct {
 type ExitConfigModeResponse struct {
 }
 
-func (s *Service) ExitConfigMode(httpClient *http.Client, args *ExitConfigModeArgs) (*ExitConfigModeResponse, error) {
+func (s *Service) ExitConfigMode(args *ExitConfigModeArgs) (*ExitConfigModeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ExitConfigMode`, httpClient,
+	r, err := s.exec(`ExitConfigMode`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -721,9 +743,9 @@ type GetButtonStateResponse struct {
 	State string `xml:"State"`
 }
 
-func (s *Service) GetButtonState(httpClient *http.Client, args *GetButtonStateArgs) (*GetButtonStateResponse, error) {
+func (s *Service) GetButtonState(args *GetButtonStateArgs) (*GetButtonStateResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetButtonState`, httpClient,
+	r, err := s.exec(`GetButtonState`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -748,9 +770,9 @@ type SetButtonLockStateArgs struct {
 type SetButtonLockStateResponse struct {
 }
 
-func (s *Service) SetButtonLockState(httpClient *http.Client, args *SetButtonLockStateArgs) (*SetButtonLockStateResponse, error) {
+func (s *Service) SetButtonLockState(args *SetButtonLockStateArgs) (*SetButtonLockStateResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetButtonLockState`, httpClient,
+	r, err := s.exec(`SetButtonLockState`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -773,9 +795,9 @@ type GetButtonLockStateResponse struct {
 	CurrentButtonLockState string `xml:"CurrentButtonLockState"`
 }
 
-func (s *Service) GetButtonLockState(httpClient *http.Client, args *GetButtonLockStateArgs) (*GetButtonLockStateResponse, error) {
+func (s *Service) GetButtonLockState(args *GetButtonLockStateArgs) (*GetButtonLockStateResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetButtonLockState`, httpClient,
+	r, err := s.exec(`GetButtonLockState`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaRenderer/VirtualLineIn/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaRenderer/VirtualLineIn/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaRenderer/VirtualLineIn/Event`)
+	e, err := url.Parse("/MediaRenderer/VirtualLineIn/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -73,20 +95,20 @@ type BodyResponse struct {
 	SetVolume         *SetVolumeResponse         `xml:"SetVolumeResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -112,9 +134,9 @@ type StartTransmissionResponse struct {
 	CurrentTransportSettings string `xml:"CurrentTransportSettings"`
 }
 
-func (s *Service) StartTransmission(httpClient *http.Client, args *StartTransmissionArgs) (*StartTransmissionResponse, error) {
+func (s *Service) StartTransmission(args *StartTransmissionArgs) (*StartTransmissionResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`StartTransmission`, httpClient,
+	r, err := s.exec(`StartTransmission`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -138,9 +160,9 @@ type StopTransmissionArgs struct {
 type StopTransmissionResponse struct {
 }
 
-func (s *Service) StopTransmission(httpClient *http.Client, args *StopTransmissionArgs) (*StopTransmissionResponse, error) {
+func (s *Service) StopTransmission(args *StopTransmissionArgs) (*StopTransmissionResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`StopTransmission`, httpClient,
+	r, err := s.exec(`StopTransmission`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -164,9 +186,9 @@ type PlayArgs struct {
 type PlayResponse struct {
 }
 
-func (s *Service) Play(httpClient *http.Client, args *PlayArgs) (*PlayResponse, error) {
+func (s *Service) Play(args *PlayArgs) (*PlayResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Play`, httpClient,
+	r, err := s.exec(`Play`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -189,9 +211,9 @@ type PauseArgs struct {
 type PauseResponse struct {
 }
 
-func (s *Service) Pause(httpClient *http.Client, args *PauseArgs) (*PauseResponse, error) {
+func (s *Service) Pause(args *PauseArgs) (*PauseResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Pause`, httpClient,
+	r, err := s.exec(`Pause`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -214,9 +236,9 @@ type NextArgs struct {
 type NextResponse struct {
 }
 
-func (s *Service) Next(httpClient *http.Client, args *NextArgs) (*NextResponse, error) {
+func (s *Service) Next(args *NextArgs) (*NextResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Next`, httpClient,
+	r, err := s.exec(`Next`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -239,9 +261,9 @@ type PreviousArgs struct {
 type PreviousResponse struct {
 }
 
-func (s *Service) Previous(httpClient *http.Client, args *PreviousArgs) (*PreviousResponse, error) {
+func (s *Service) Previous(args *PreviousArgs) (*PreviousResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Previous`, httpClient,
+	r, err := s.exec(`Previous`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -264,9 +286,9 @@ type StopArgs struct {
 type StopResponse struct {
 }
 
-func (s *Service) Stop(httpClient *http.Client, args *StopArgs) (*StopResponse, error) {
+func (s *Service) Stop(args *StopArgs) (*StopResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Stop`, httpClient,
+	r, err := s.exec(`Stop`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -290,9 +312,9 @@ type SetVolumeArgs struct {
 type SetVolumeResponse struct {
 }
 
-func (s *Service) SetVolume(httpClient *http.Client, args *SetVolumeArgs) (*SetVolumeResponse, error) {
+func (s *Service) SetVolume(args *SetVolumeArgs) (*SetVolumeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetVolume`, httpClient,
+	r, err := s.exec(`SetVolume`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

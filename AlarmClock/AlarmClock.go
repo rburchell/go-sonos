@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/AlarmClock/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/AlarmClock/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/AlarmClock/Event`)
+	e, err := url.Parse("/AlarmClock/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -91,20 +113,20 @@ type BodyResponse struct {
 	GetDailyIndexRefreshTime *GetDailyIndexRefreshTimeResponse `xml:"GetDailyIndexRefreshTimeResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +151,9 @@ type SetFormatArgs struct {
 type SetFormatResponse struct {
 }
 
-func (s *Service) SetFormat(httpClient *http.Client, args *SetFormatArgs) (*SetFormatResponse, error) {
+func (s *Service) SetFormat(args *SetFormatArgs) (*SetFormatResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetFormat`, httpClient,
+	r, err := s.exec(`SetFormat`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -155,9 +177,9 @@ type GetFormatResponse struct {
 	CurrentDateFormat string `xml:"CurrentDateFormat"`
 }
 
-func (s *Service) GetFormat(httpClient *http.Client, args *GetFormatArgs) (*GetFormatResponse, error) {
+func (s *Service) GetFormat(args *GetFormatArgs) (*GetFormatResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetFormat`, httpClient,
+	r, err := s.exec(`GetFormat`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -181,9 +203,9 @@ type SetTimeZoneArgs struct {
 type SetTimeZoneResponse struct {
 }
 
-func (s *Service) SetTimeZone(httpClient *http.Client, args *SetTimeZoneArgs) (*SetTimeZoneResponse, error) {
+func (s *Service) SetTimeZone(args *SetTimeZoneArgs) (*SetTimeZoneResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetTimeZone`, httpClient,
+	r, err := s.exec(`SetTimeZone`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -207,9 +229,9 @@ type GetTimeZoneResponse struct {
 	AutoAdjustDst bool  `xml:"AutoAdjustDst"`
 }
 
-func (s *Service) GetTimeZone(httpClient *http.Client, args *GetTimeZoneArgs) (*GetTimeZoneResponse, error) {
+func (s *Service) GetTimeZone(args *GetTimeZoneArgs) (*GetTimeZoneResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTimeZone`, httpClient,
+	r, err := s.exec(`GetTimeZone`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -234,9 +256,9 @@ type GetTimeZoneAndRuleResponse struct {
 	CurrentTimeZone string `xml:"CurrentTimeZone"`
 }
 
-func (s *Service) GetTimeZoneAndRule(httpClient *http.Client, args *GetTimeZoneAndRuleArgs) (*GetTimeZoneAndRuleResponse, error) {
+func (s *Service) GetTimeZoneAndRule(args *GetTimeZoneAndRuleArgs) (*GetTimeZoneAndRuleResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTimeZoneAndRule`, httpClient,
+	r, err := s.exec(`GetTimeZoneAndRule`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -260,9 +282,9 @@ type GetTimeZoneRuleResponse struct {
 	TimeZone string `xml:"TimeZone"`
 }
 
-func (s *Service) GetTimeZoneRule(httpClient *http.Client, args *GetTimeZoneRuleArgs) (*GetTimeZoneRuleResponse, error) {
+func (s *Service) GetTimeZoneRule(args *GetTimeZoneRuleArgs) (*GetTimeZoneRuleResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTimeZoneRule`, httpClient,
+	r, err := s.exec(`GetTimeZoneRule`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -285,9 +307,9 @@ type SetTimeServerArgs struct {
 type SetTimeServerResponse struct {
 }
 
-func (s *Service) SetTimeServer(httpClient *http.Client, args *SetTimeServerArgs) (*SetTimeServerResponse, error) {
+func (s *Service) SetTimeServer(args *SetTimeServerArgs) (*SetTimeServerResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetTimeServer`, httpClient,
+	r, err := s.exec(`SetTimeServer`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -310,9 +332,9 @@ type GetTimeServerResponse struct {
 	CurrentTimeServer string `xml:"CurrentTimeServer"`
 }
 
-func (s *Service) GetTimeServer(httpClient *http.Client, args *GetTimeServerArgs) (*GetTimeServerResponse, error) {
+func (s *Service) GetTimeServer(args *GetTimeServerArgs) (*GetTimeServerResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTimeServer`, httpClient,
+	r, err := s.exec(`GetTimeServer`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -336,9 +358,9 @@ type SetTimeNowArgs struct {
 type SetTimeNowResponse struct {
 }
 
-func (s *Service) SetTimeNow(httpClient *http.Client, args *SetTimeNowArgs) (*SetTimeNowResponse, error) {
+func (s *Service) SetTimeNow(args *SetTimeNowArgs) (*SetTimeNowResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetTimeNow`, httpClient,
+	r, err := s.exec(`SetTimeNow`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -362,9 +384,9 @@ type GetHouseholdTimeAtStampResponse struct {
 	HouseholdUTCTime string `xml:"HouseholdUTCTime"`
 }
 
-func (s *Service) GetHouseholdTimeAtStamp(httpClient *http.Client, args *GetHouseholdTimeAtStampArgs) (*GetHouseholdTimeAtStampResponse, error) {
+func (s *Service) GetHouseholdTimeAtStamp(args *GetHouseholdTimeAtStampArgs) (*GetHouseholdTimeAtStampResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetHouseholdTimeAtStamp`, httpClient,
+	r, err := s.exec(`GetHouseholdTimeAtStamp`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -390,9 +412,9 @@ type GetTimeNowResponse struct {
 	CurrentTimeGeneration uint32 `xml:"CurrentTimeGeneration"`
 }
 
-func (s *Service) GetTimeNow(httpClient *http.Client, args *GetTimeNowArgs) (*GetTimeNowResponse, error) {
+func (s *Service) GetTimeNow(args *GetTimeNowArgs) (*GetTimeNowResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetTimeNow`, httpClient,
+	r, err := s.exec(`GetTimeNow`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -433,9 +455,9 @@ type CreateAlarmResponse struct {
 	AssignedID uint32 `xml:"AssignedID"`
 }
 
-func (s *Service) CreateAlarm(httpClient *http.Client, args *CreateAlarmArgs) (*CreateAlarmResponse, error) {
+func (s *Service) CreateAlarm(args *CreateAlarmArgs) (*CreateAlarmResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`CreateAlarm`, httpClient,
+	r, err := s.exec(`CreateAlarm`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -476,9 +498,9 @@ type UpdateAlarmArgs struct {
 type UpdateAlarmResponse struct {
 }
 
-func (s *Service) UpdateAlarm(httpClient *http.Client, args *UpdateAlarmArgs) (*UpdateAlarmResponse, error) {
+func (s *Service) UpdateAlarm(args *UpdateAlarmArgs) (*UpdateAlarmResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`UpdateAlarm`, httpClient,
+	r, err := s.exec(`UpdateAlarm`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -501,9 +523,9 @@ type DestroyAlarmArgs struct {
 type DestroyAlarmResponse struct {
 }
 
-func (s *Service) DestroyAlarm(httpClient *http.Client, args *DestroyAlarmArgs) (*DestroyAlarmResponse, error) {
+func (s *Service) DestroyAlarm(args *DestroyAlarmArgs) (*DestroyAlarmResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`DestroyAlarm`, httpClient,
+	r, err := s.exec(`DestroyAlarm`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -527,9 +549,9 @@ type ListAlarmsResponse struct {
 	CurrentAlarmListVersion string `xml:"CurrentAlarmListVersion"`
 }
 
-func (s *Service) ListAlarms(httpClient *http.Client, args *ListAlarmsArgs) (*ListAlarmsResponse, error) {
+func (s *Service) ListAlarms(args *ListAlarmsArgs) (*ListAlarmsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ListAlarms`, httpClient,
+	r, err := s.exec(`ListAlarms`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -552,9 +574,9 @@ type SetDailyIndexRefreshTimeArgs struct {
 type SetDailyIndexRefreshTimeResponse struct {
 }
 
-func (s *Service) SetDailyIndexRefreshTime(httpClient *http.Client, args *SetDailyIndexRefreshTimeArgs) (*SetDailyIndexRefreshTimeResponse, error) {
+func (s *Service) SetDailyIndexRefreshTime(args *SetDailyIndexRefreshTimeArgs) (*SetDailyIndexRefreshTimeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetDailyIndexRefreshTime`, httpClient,
+	r, err := s.exec(`SetDailyIndexRefreshTime`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -577,9 +599,9 @@ type GetDailyIndexRefreshTimeResponse struct {
 	CurrentDailyIndexRefreshTime string `xml:"CurrentDailyIndexRefreshTime"`
 }
 
-func (s *Service) GetDailyIndexRefreshTime(httpClient *http.Client, args *GetDailyIndexRefreshTimeArgs) (*GetDailyIndexRefreshTimeResponse, error) {
+func (s *Service) GetDailyIndexRefreshTime(args *GetDailyIndexRefreshTimeArgs) (*GetDailyIndexRefreshTimeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetDailyIndexRefreshTime`, httpClient,
+	r, err := s.exec(`GetDailyIndexRefreshTime`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

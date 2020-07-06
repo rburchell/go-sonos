@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/GroupManagement/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/GroupManagement/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/GroupManagement/Event`)
+	e, err := url.Parse("/GroupManagement/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -65,20 +87,20 @@ type BodyResponse struct {
 	SetSourceAreaIds           *SetSourceAreaIdsResponse           `xml:"SetSourceAreaIdsResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +130,9 @@ type AddMemberResponse struct {
 	VolumeAVTransportURI     string `xml:"VolumeAVTransportURI"`
 }
 
-func (s *Service) AddMember(httpClient *http.Client, args *AddMemberArgs) (*AddMemberResponse, error) {
+func (s *Service) AddMember(args *AddMemberArgs) (*AddMemberResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`AddMember`, httpClient,
+	r, err := s.exec(`AddMember`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -133,9 +155,9 @@ type RemoveMemberArgs struct {
 type RemoveMemberResponse struct {
 }
 
-func (s *Service) RemoveMember(httpClient *http.Client, args *RemoveMemberArgs) (*RemoveMemberResponse, error) {
+func (s *Service) RemoveMember(args *RemoveMemberArgs) (*RemoveMemberResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RemoveMember`, httpClient,
+	r, err := s.exec(`RemoveMember`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -159,9 +181,9 @@ type ReportTrackBufferingResultArgs struct {
 type ReportTrackBufferingResultResponse struct {
 }
 
-func (s *Service) ReportTrackBufferingResult(httpClient *http.Client, args *ReportTrackBufferingResultArgs) (*ReportTrackBufferingResultResponse, error) {
+func (s *Service) ReportTrackBufferingResult(args *ReportTrackBufferingResultArgs) (*ReportTrackBufferingResultResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`ReportTrackBufferingResult`, httpClient,
+	r, err := s.exec(`ReportTrackBufferingResult`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -184,9 +206,9 @@ type SetSourceAreaIdsArgs struct {
 type SetSourceAreaIdsResponse struct {
 }
 
-func (s *Service) SetSourceAreaIds(httpClient *http.Client, args *SetSourceAreaIdsArgs) (*SetSourceAreaIdsResponse, error) {
+func (s *Service) SetSourceAreaIds(args *SetSourceAreaIdsArgs) (*SetSourceAreaIdsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetSourceAreaIds`, httpClient,
+	r, err := s.exec(`SetSourceAreaIds`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,

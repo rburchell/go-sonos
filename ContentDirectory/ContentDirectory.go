@@ -18,24 +18,46 @@ const (
 	_EnvelopeSchema = "http://schemas.xmlsoap.org/soap/envelope/"
 )
 
+type ServiceOption func(*Service)
+
+func WithClient(c *http.Client) ServiceOption {
+	return func(s *Service) {
+		s.client = c
+	}
+}
+
+func WithLocation(u *url.URL) ServiceOption {
+	return func(s *Service) {
+		s.location = u
+	}
+}
+
 type Service struct {
 	ControlEndpoint *url.URL
 	EventEndpoint   *url.URL
+	location        *url.URL
+	client          *http.Client
 }
 
-func NewService(deviceUrl *url.URL) *Service {
-	c, err := url.Parse(`/MediaServer/ContentDirectory/Control`)
+func NewService(opts ...ServiceOption) *Service {
+	c, err := url.Parse("/MediaServer/ContentDirectory/Control")
 	if nil != err {
 		panic(err)
 	}
-	e, err := url.Parse(`/MediaServer/ContentDirectory/Event`)
+	e, err := url.Parse("/MediaServer/ContentDirectory/Event")
 	if nil != err {
 		panic(err)
 	}
-	return &Service{
-		ControlEndpoint: deviceUrl.ResolveReference(c),
-		EventEndpoint:   deviceUrl.ResolveReference(e),
+	s := &Service{}
+	for _, opt := range opts {
+		opt(s)
 	}
+	if s.location == nil {
+		panic("Empty location")
+	}
+	s.ControlEndpoint = s.location.ResolveReference(c)
+	s.EventEndpoint = s.location.ResolveReference(e)
+	return s
 }
 
 type Envelope struct {
@@ -89,20 +111,20 @@ type BodyResponse struct {
 	SetBrowseable               *SetBrowseableResponse               `xml:"SetBrowseableResponse,omitempty"`
 }
 
-func (s *Service) exec(actionName string, httpClient *http.Client, envelope *Envelope) (*EnvelopeResponse, error) {
+func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse, error) {
 	marshaled, err := xml.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
-	postBody := []byte(`<?xml version="1.0"?>`)
+	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest(`POST`, s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
-	req.Header.Set(`SOAPAction`, _ServiceURN+`#`+actionName)
-	res, err := httpClient.Do(req)
+	req.Header.Set("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Set("SOAPAction", _ServiceURN+"#"+actionName)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +148,9 @@ type GetSearchCapabilitiesResponse struct {
 	SearchCaps string `xml:"SearchCaps"`
 }
 
-func (s *Service) GetSearchCapabilities(httpClient *http.Client, args *GetSearchCapabilitiesArgs) (*GetSearchCapabilitiesResponse, error) {
+func (s *Service) GetSearchCapabilities(args *GetSearchCapabilitiesArgs) (*GetSearchCapabilitiesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetSearchCapabilities`, httpClient,
+	r, err := s.exec(`GetSearchCapabilities`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -151,9 +173,9 @@ type GetSortCapabilitiesResponse struct {
 	SortCaps string `xml:"SortCaps"`
 }
 
-func (s *Service) GetSortCapabilities(httpClient *http.Client, args *GetSortCapabilitiesArgs) (*GetSortCapabilitiesResponse, error) {
+func (s *Service) GetSortCapabilities(args *GetSortCapabilitiesArgs) (*GetSortCapabilitiesResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetSortCapabilities`, httpClient,
+	r, err := s.exec(`GetSortCapabilities`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -176,9 +198,9 @@ type GetSystemUpdateIDResponse struct {
 	Id uint32 `xml:"Id"`
 }
 
-func (s *Service) GetSystemUpdateID(httpClient *http.Client, args *GetSystemUpdateIDArgs) (*GetSystemUpdateIDResponse, error) {
+func (s *Service) GetSystemUpdateID(args *GetSystemUpdateIDArgs) (*GetSystemUpdateIDResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetSystemUpdateID`, httpClient,
+	r, err := s.exec(`GetSystemUpdateID`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -201,9 +223,9 @@ type GetAlbumArtistDisplayOptionResponse struct {
 	AlbumArtistDisplayOption string `xml:"AlbumArtistDisplayOption"`
 }
 
-func (s *Service) GetAlbumArtistDisplayOption(httpClient *http.Client, args *GetAlbumArtistDisplayOptionArgs) (*GetAlbumArtistDisplayOptionResponse, error) {
+func (s *Service) GetAlbumArtistDisplayOption(args *GetAlbumArtistDisplayOptionArgs) (*GetAlbumArtistDisplayOptionResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetAlbumArtistDisplayOption`, httpClient,
+	r, err := s.exec(`GetAlbumArtistDisplayOption`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -226,9 +248,9 @@ type GetLastIndexChangeResponse struct {
 	LastIndexChange string `xml:"LastIndexChange"`
 }
 
-func (s *Service) GetLastIndexChange(httpClient *http.Client, args *GetLastIndexChangeArgs) (*GetLastIndexChangeResponse, error) {
+func (s *Service) GetLastIndexChange(args *GetLastIndexChangeArgs) (*GetLastIndexChangeResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetLastIndexChange`, httpClient,
+	r, err := s.exec(`GetLastIndexChange`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -262,9 +284,9 @@ type BrowseResponse struct {
 	UpdateID       uint32 `xml:"UpdateID"`
 }
 
-func (s *Service) Browse(httpClient *http.Client, args *BrowseArgs) (*BrowseResponse, error) {
+func (s *Service) Browse(args *BrowseArgs) (*BrowseResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`Browse`, httpClient,
+	r, err := s.exec(`Browse`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -290,9 +312,9 @@ type FindPrefixResponse struct {
 	UpdateID      uint32 `xml:"UpdateID"`
 }
 
-func (s *Service) FindPrefix(httpClient *http.Client, args *FindPrefixArgs) (*FindPrefixResponse, error) {
+func (s *Service) FindPrefix(args *FindPrefixArgs) (*FindPrefixResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`FindPrefix`, httpClient,
+	r, err := s.exec(`FindPrefix`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -318,9 +340,9 @@ type GetAllPrefixLocationsResponse struct {
 	UpdateID          uint32 `xml:"UpdateID"`
 }
 
-func (s *Service) GetAllPrefixLocations(httpClient *http.Client, args *GetAllPrefixLocationsArgs) (*GetAllPrefixLocationsResponse, error) {
+func (s *Service) GetAllPrefixLocations(args *GetAllPrefixLocationsArgs) (*GetAllPrefixLocationsResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetAllPrefixLocations`, httpClient,
+	r, err := s.exec(`GetAllPrefixLocations`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -346,9 +368,9 @@ type CreateObjectResponse struct {
 	Result   string `xml:"Result"`
 }
 
-func (s *Service) CreateObject(httpClient *http.Client, args *CreateObjectArgs) (*CreateObjectResponse, error) {
+func (s *Service) CreateObject(args *CreateObjectArgs) (*CreateObjectResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`CreateObject`, httpClient,
+	r, err := s.exec(`CreateObject`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -373,9 +395,9 @@ type UpdateObjectArgs struct {
 type UpdateObjectResponse struct {
 }
 
-func (s *Service) UpdateObject(httpClient *http.Client, args *UpdateObjectArgs) (*UpdateObjectResponse, error) {
+func (s *Service) UpdateObject(args *UpdateObjectArgs) (*UpdateObjectResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`UpdateObject`, httpClient,
+	r, err := s.exec(`UpdateObject`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -398,9 +420,9 @@ type DestroyObjectArgs struct {
 type DestroyObjectResponse struct {
 }
 
-func (s *Service) DestroyObject(httpClient *http.Client, args *DestroyObjectArgs) (*DestroyObjectResponse, error) {
+func (s *Service) DestroyObject(args *DestroyObjectArgs) (*DestroyObjectResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`DestroyObject`, httpClient,
+	r, err := s.exec(`DestroyObject`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -423,9 +445,9 @@ type RefreshShareIndexArgs struct {
 type RefreshShareIndexResponse struct {
 }
 
-func (s *Service) RefreshShareIndex(httpClient *http.Client, args *RefreshShareIndexArgs) (*RefreshShareIndexResponse, error) {
+func (s *Service) RefreshShareIndex(args *RefreshShareIndexArgs) (*RefreshShareIndexResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RefreshShareIndex`, httpClient,
+	r, err := s.exec(`RefreshShareIndex`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -448,9 +470,9 @@ type RequestResortArgs struct {
 type RequestResortResponse struct {
 }
 
-func (s *Service) RequestResort(httpClient *http.Client, args *RequestResortArgs) (*RequestResortResponse, error) {
+func (s *Service) RequestResort(args *RequestResortArgs) (*RequestResortResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`RequestResort`, httpClient,
+	r, err := s.exec(`RequestResort`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -473,9 +495,9 @@ type GetShareIndexInProgressResponse struct {
 	IsIndexing bool `xml:"IsIndexing"`
 }
 
-func (s *Service) GetShareIndexInProgress(httpClient *http.Client, args *GetShareIndexInProgressArgs) (*GetShareIndexInProgressResponse, error) {
+func (s *Service) GetShareIndexInProgress(args *GetShareIndexInProgressArgs) (*GetShareIndexInProgressResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetShareIndexInProgress`, httpClient,
+	r, err := s.exec(`GetShareIndexInProgress`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -498,9 +520,9 @@ type GetBrowseableResponse struct {
 	IsBrowseable bool `xml:"IsBrowseable"`
 }
 
-func (s *Service) GetBrowseable(httpClient *http.Client, args *GetBrowseableArgs) (*GetBrowseableResponse, error) {
+func (s *Service) GetBrowseable(args *GetBrowseableArgs) (*GetBrowseableResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`GetBrowseable`, httpClient,
+	r, err := s.exec(`GetBrowseable`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
@@ -523,9 +545,9 @@ type SetBrowseableArgs struct {
 type SetBrowseableResponse struct {
 }
 
-func (s *Service) SetBrowseable(httpClient *http.Client, args *SetBrowseableArgs) (*SetBrowseableResponse, error) {
+func (s *Service) SetBrowseable(args *SetBrowseableArgs) (*SetBrowseableResponse, error) {
 	args.Xmlns = _ServiceURN
-	r, err := s.exec(`SetBrowseable`, httpClient,
+	r, err := s.exec(`SetBrowseable`,
 		&Envelope{
 			EncodingStyle: _EncodingSchema,
 			Xmlns:         _EnvelopeSchema,
