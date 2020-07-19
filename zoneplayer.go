@@ -109,8 +109,12 @@ func WithClient(c *http.Client) ZonePlayerOption {
 
 func WithLocation(u *url.URL) ZonePlayerOption {
 	return func(z *ZonePlayer) {
-		z.LocationURL = u
+		z.location = u
 	}
+}
+
+func FromEndpoint(endpoint string) (*url.URL, error) {
+	return url.Parse(fmt.Sprintf("http://%s:1400/xml/device_description.xml", endpoint))
 }
 
 type ZonePlayer struct {
@@ -118,7 +122,7 @@ type ZonePlayer struct {
 
 	client *http.Client
 	// A URL that can be queried for device capabilities
-	LocationURL *url.URL
+	location *url.URL
 
 	*Services
 }
@@ -156,11 +160,11 @@ func NewZonePlayer(opts ...ZonePlayerOption) (*ZonePlayer, error) {
 		opt(zp)
 	}
 
-	if zp.LocationURL == nil {
-		return nil, fmt.Errorf("Empty LocationURL")
+	if zp.location == nil {
+		return nil, fmt.Errorf("Empty location")
 	}
 
-	resp, err := zp.client.Get(zp.LocationURL.String())
+	resp, err := zp.client.Get(zp.location.String())
 	if err != nil {
 		return nil, err
 	}
@@ -178,59 +182,59 @@ func NewZonePlayer(opts ...ZonePlayerOption) (*ZonePlayer, error) {
 
 	zp.Services = &Services{
 		AlarmClock: clk.NewService(
-			clk.WithLocation(zp.LocationURL),
+			clk.WithLocation(zp.location),
 			clk.WithClient(zp.client),
 		),
 		AVTransport: avt.NewService(
-			avt.WithLocation(zp.LocationURL),
+			avt.WithLocation(zp.location),
 			avt.WithClient(zp.client),
 		),
 		ConnectionManager: con.NewService(
-			con.WithLocation(zp.LocationURL),
+			con.WithLocation(zp.location),
 			con.WithClient(zp.client),
 		),
 		ContentDirectory: dir.NewService(
-			dir.WithLocation(zp.LocationURL),
+			dir.WithLocation(zp.location),
 			dir.WithClient(zp.client),
 		),
 		DeviceProperties: dev.NewService(
-			dev.WithLocation(zp.LocationURL),
+			dev.WithLocation(zp.location),
 			dev.WithClient(zp.client),
 		),
 		GroupManagement: gmn.NewService(
-			gmn.WithLocation(zp.LocationURL),
+			gmn.WithLocation(zp.location),
 			gmn.WithClient(zp.client),
 		),
 		GroupRenderingControl: rcg.NewService(
-			rcg.WithLocation(zp.LocationURL),
+			rcg.WithLocation(zp.location),
 			rcg.WithClient(zp.client),
 		),
 		MusicServices: mus.NewService(
-			mus.WithLocation(zp.LocationURL),
+			mus.WithLocation(zp.location),
 			mus.WithClient(zp.client),
 		),
 		QPlay: ply.NewService(
-			ply.WithLocation(zp.LocationURL),
+			ply.WithLocation(zp.location),
 			ply.WithClient(zp.client),
 		),
 		Queue: que.NewService(
-			que.WithLocation(zp.LocationURL),
+			que.WithLocation(zp.location),
 			que.WithClient(zp.client),
 		),
 		RenderingControl: ren.NewService(
-			ren.WithLocation(zp.LocationURL),
+			ren.WithLocation(zp.location),
 			ren.WithClient(zp.client),
 		),
 		SystemProperties: sys.NewService(
-			sys.WithLocation(zp.LocationURL),
+			sys.WithLocation(zp.location),
 			sys.WithClient(zp.client),
 		),
 		VirtualLineIn: vli.NewService(
-			vli.WithLocation(zp.LocationURL),
+			vli.WithLocation(zp.location),
 			vli.WithClient(zp.client),
 		),
 		ZoneGroupTopology: zgt.NewService(
-			zgt.WithLocation(zp.LocationURL),
+			zgt.WithLocation(zp.location),
 			zgt.WithClient(zp.client),
 		),
 	}
@@ -241,6 +245,10 @@ func NewZonePlayer(opts ...ZonePlayerOption) (*ZonePlayer, error) {
 // Client returns the underlying http client.
 func (z *ZonePlayer) Client() *http.Client {
 	return z.client
+}
+
+func (z *ZonePlayer) Location() *url.URL {
+	return z.location
 }
 
 func (z *ZonePlayer) RoomName() string {

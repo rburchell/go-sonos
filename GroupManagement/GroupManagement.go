@@ -33,13 +33,16 @@ func WithLocation(u *url.URL) ServiceOption {
 }
 
 type Service struct {
-	ControlEndpoint *url.URL
-	EventEndpoint   *url.URL
-	location        *url.URL
-	client          *http.Client
+	controlEndpoint *url.URL
+	eventEndpoint   *url.URL
+
+	location *url.URL
+	client   *http.Client
 }
 
 func NewService(opts ...ServiceOption) *Service {
+	s := &Service{}
+
 	c, err := url.Parse("/GroupManagement/Control")
 	if nil != err {
 		panic(err)
@@ -48,16 +51,38 @@ func NewService(opts ...ServiceOption) *Service {
 	if nil != err {
 		panic(err)
 	}
-	s := &Service{}
+
 	for _, opt := range opts {
 		opt(s)
 	}
-	if s.location == nil {
-		panic("Empty location")
+
+	if s.client == nil {
+		panic("no client location")
 	}
-	s.ControlEndpoint = s.location.ResolveReference(c)
-	s.EventEndpoint = s.location.ResolveReference(e)
+	if s.location == nil {
+		panic("empty location")
+	}
+
+	s.controlEndpoint = s.location.ResolveReference(c)
+	s.eventEndpoint = s.location.ResolveReference(e)
+
 	return s
+}
+
+func (s *Service) ControlEndpoint() *url.URL {
+	return s.controlEndpoint
+}
+
+func (s *Service) EventEndpoint() *url.URL {
+	return s.eventEndpoint
+}
+
+func (s *Service) Location() *url.URL {
+	return s.location
+}
+
+func (s *Service) Client() *http.Client {
+	return s.client
 }
 
 type Envelope struct {
@@ -94,7 +119,7 @@ func (s *Service) exec(actionName string, envelope *Envelope) (*EnvelopeResponse
 	}
 	postBody := []byte("<?xml version=\"1.0\"?>")
 	postBody = append(postBody, marshaled...)
-	req, err := http.NewRequest("POST", s.ControlEndpoint.String(), bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", s.controlEndpoint.String(), bytes.NewBuffer(postBody))
 	if err != nil {
 		return nil, err
 	}
