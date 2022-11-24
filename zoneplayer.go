@@ -8,21 +8,28 @@ import (
 	"net/url"
 	"time"
 
-	avt "github.com/caglar10ur/sonos/AVTransport"
-	clk "github.com/caglar10ur/sonos/AlarmClock"
-	con "github.com/caglar10ur/sonos/ConnectionManager"
-	dir "github.com/caglar10ur/sonos/ContentDirectory"
-	dev "github.com/caglar10ur/sonos/DeviceProperties"
-	gmn "github.com/caglar10ur/sonos/GroupManagement"
-	rcg "github.com/caglar10ur/sonos/GroupRenderingControl"
-	mus "github.com/caglar10ur/sonos/MusicServices"
-	ply "github.com/caglar10ur/sonos/QPlay"
-	que "github.com/caglar10ur/sonos/Queue"
-	ren "github.com/caglar10ur/sonos/RenderingControl"
-	sys "github.com/caglar10ur/sonos/SystemProperties"
-	vli "github.com/caglar10ur/sonos/VirtualLineIn"
-	zgt "github.com/caglar10ur/sonos/ZoneGroupTopology"
+	avt "github.com/caglar10ur/sonos/services/AVTransport"
+	clk "github.com/caglar10ur/sonos/services/AlarmClock"
+	ain "github.com/caglar10ur/sonos/services/AudioIn"
+	con "github.com/caglar10ur/sonos/services/ConnectionManager"
+	dir "github.com/caglar10ur/sonos/services/ContentDirectory"
+	dev "github.com/caglar10ur/sonos/services/DeviceProperties"
+	gmn "github.com/caglar10ur/sonos/services/GroupManagement"
+	rcg "github.com/caglar10ur/sonos/services/GroupRenderingControl"
+	mus "github.com/caglar10ur/sonos/services/MusicServices"
+	ply "github.com/caglar10ur/sonos/services/QPlay"
+	que "github.com/caglar10ur/sonos/services/Queue"
+	ren "github.com/caglar10ur/sonos/services/RenderingControl"
+	sys "github.com/caglar10ur/sonos/services/SystemProperties"
+	vli "github.com/caglar10ur/sonos/services/VirtualLineIn"
+	zgt "github.com/caglar10ur/sonos/services/ZoneGroupTopology"
 )
+
+type SonosService interface {
+	ControlEndpoint() *url.URL
+	EventEndpoint() *url.URL
+	ParseEvent([]byte) []interface{}
+}
 
 type SpecVersion struct {
 	XMLName xml.Name `xml:"specVersion"`
@@ -130,6 +137,7 @@ type ZonePlayer struct {
 type Services struct {
 	// services
 	AlarmClock            *clk.Service
+	AudioIn               *ain.Service
 	AVTransport           *avt.Service
 	ConnectionManager     *con.Service
 	ContentDirectory      *dir.Service
@@ -188,6 +196,10 @@ func NewZonePlayer(opts ...ZonePlayerOption) (*ZonePlayer, error) {
 		AVTransport: avt.NewService(
 			avt.WithLocation(zp.location),
 			avt.WithClient(zp.client),
+		),
+		AudioIn: ain.NewService(
+			ain.WithLocation(zp.location),
+			ain.WithClient(zp.client),
 		),
 		ConnectionManager: con.NewService(
 			con.WithLocation(zp.location),
@@ -281,8 +293,6 @@ func (z *ZonePlayer) IsCoordinator() bool {
 	return false
 }
 
-// Convience functions
-
 func (z *ZonePlayer) GetZoneGroupState() (*ZoneGroupState, error) {
 	zoneGroupStateResponse, err := z.ZoneGroupTopology.GetZoneGroupState(&zgt.GetZoneGroupStateArgs{})
 	if err != nil {
@@ -326,4 +336,11 @@ func (z *ZonePlayer) SetAVTransportURI(url string) error {
 		CurrentURI: url,
 	})
 	return err
+}
+
+func (zp *ZonePlayer) Event(evt interface{}) {
+	switch e := evt.(type) {
+	default:
+		fmt.Printf("Unhandeld event %T: %q\n", e, e)
+	}
 }

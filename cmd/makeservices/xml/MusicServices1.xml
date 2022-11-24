@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <scpd xmlns="urn:schemas-upnp-org:service-1-0">
   <specVersion>
     <major>1</major>
@@ -31,26 +31,26 @@
     </stateVariable>
   </serviceStateTable>
   <actionList>
-      <action>
-        <name>GetSessionId</name>
-        <argumentList>
-          <argument>
-            <name>ServiceId</name>
-            <direction>in</direction>
-            <relatedStateVariable>ServiceId</relatedStateVariable>
-          </argument>
-          <argument>
-            <name>Username</name>
-            <direction>in</direction>
-            <relatedStateVariable>Username</relatedStateVariable>
-          </argument>
-          <argument>
-            <name>SessionId</name>
-            <direction>out</direction>
-            <relatedStateVariable>SessionId</relatedStateVariable>
-          </argument>
-        </argumentList>
-      </action>
+    <action>
+      <name>GetSessionId</name>
+      <argumentList>
+        <argument>
+          <name>ServiceId</name>
+          <direction>in</direction>
+          <relatedStateVariable>ServiceId</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>Username</name>
+          <direction>in</direction>
+          <relatedStateVariable>Username</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>SessionId</name>
+          <direction>out</direction>
+          <relatedStateVariable>SessionId</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
     <action>
       <name>ListAvailableServices</name>
       <argumentList>

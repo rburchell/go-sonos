@@ -3,7 +3,7 @@ package sonos
 import (
 	"encoding/xml"
 
-	"github.com/ianr0bkny/go-sonos/didl"
+	"github.com/caglar10ur/sonos/didl"
 )
 
 // Lite embeds didl.Lite struct.
@@ -25,3 +25,4 @@ func ParseDIDL(raw string) (*Lite, error) {
 	return didl, nil
 
 }
+

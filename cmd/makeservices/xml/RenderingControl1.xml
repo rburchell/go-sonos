@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <scpd xmlns="urn:schemas-upnp-org:service-1-0">
   <specVersion>
     <major>1</major>
@@ -102,7 +102,6 @@
         <allowedValue>Master</allowedValue>
         <allowedValue>LF</allowedValue>
         <allowedValue>RF</allowedValue>
-        <allowedValue>SpeakerOnly</allowedValue>
       </allowedValueList>
     </stateVariable>
     <stateVariable sendEvents="no">
@@ -711,31 +710,6 @@
       </argumentList>
     </action>
     <action>
-      <name>SetRoomCalibrationX</name>
-      <argumentList>
-        <argument>
-          <name>InstanceID</name>
-          <direction>in</direction>
-          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>
-        </argument>
-        <argument>
-          <name>CalibrationID</name>
-          <direction>in</direction>
-          <relatedStateVariable>RoomCalibrationID</relatedStateVariable>
-        </argument>
-        <argument>
-          <name>Coefficients</name>
-          <direction>in</direction>
-          <relatedStateVariable>RoomCalibrationCoefficients</relatedStateVariable>
-        </argument>
-        <argument>
-          <name>CalibrationMode</name>
-          <direction>in</direction>
-          <relatedStateVariable>RoomCalibrationCalibrationMode</relatedStateVariable>
-        </argument>
-      </argumentList>
-    </action>
-    <action>
       <name>GetRoomCalibrationStatus</name>
       <argumentList>
         <argument>
@@ -772,4 +746,3 @@
     </action>
   </actionList>
 </scpd>
-

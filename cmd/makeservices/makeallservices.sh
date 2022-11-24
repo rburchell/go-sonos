@@ -6,31 +6,31 @@ declare -a arr=("VirtualLineIn" "GroupRenderingControl" "Queue" "AVTransport" "C
 
 for i in "${arr[@]}"
 do
-    mkdir -p ${DIR}/../../${i}/
-    rm -f ${DIR}/../../${i}/*.go
     go run ${DIR}/makeservice.go ${i} /MediaRenderer/${i}/Control /MediaRenderer/${i}/Event ${DIR}/xml/${i}1.xml >${i}.go
-    go fmt ${i}.go
-    mv ${i}.go ${DIR}/../../${i}/
+    goimports -w ${i}.go
+
+    mkdir -p ${DIR}/../../services/${i}/
+    mv ${i}.go ${DIR}/../../services/${i}/
 done
 
 declare -a arr=("ContentDirectory" "ConnectionManager")
 
 for i in "${arr[@]}"
 do
-    mkdir -p ${DIR}/../../${i}/
-    rm -f ${DIR}/../../${i}/*.go
     go run ${DIR}/makeservice.go ${i} /MediaServer/${i}/Control /MediaServer/${i}/Event ${DIR}/xml/${i}1.xml >${i}.go
-    go fmt ${i}.go
-    mv ${i}.go ${DIR}/../../${i}/
+    goimports -w ${i}.go
+
+    mkdir -p ${DIR}/../../services/${i}/
+    mv ${i}.go ${DIR}/../../services/${i}/
 done
 
-declare -a arr=("AlarmClock" "MusicServices" "DeviceProperties" "SystemProperties" "ZoneGroupTopology" "GroupManagement" "QPlay")
+declare -a arr=("AudioIn" "AlarmClock" "MusicServices" "DeviceProperties" "SystemProperties" "ZoneGroupTopology" "GroupManagement" "QPlay")
 
 for i in "${arr[@]}"
 do
-    mkdir -p ${DIR}/../../${i}/
-    rm -f ${DIR}/../../${i}/*.go
     go run ${DIR}/makeservice.go ${i} /${i}/Control /${i}/Event ${DIR}/xml/${i}1.xml >${i}.go
-    go fmt ${i}.go
-    mv ${i}.go ${DIR}/../../${i}/
+    goimports -w ${i}.go
+
+    mkdir -p ${DIR}/../../services/${i}/
+    mv ${i}.go ${DIR}/../../services/${i}/
 done

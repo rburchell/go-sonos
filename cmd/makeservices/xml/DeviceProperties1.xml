@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <scpd xmlns="urn:schemas-upnp-org:service-1-0">
   <specVersion>
     <major>1</major>
@@ -25,7 +25,11 @@
       <name>Configuration</name>
       <dataType>string</dataType>
     </stateVariable>
-     <stateVariable sendEvents="yes">
+    <stateVariable sendEvents="no">
+      <name>TargetRoomName</name>
+      <dataType>string</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
       <name>Invisible</name>
       <dataType>boolean</dataType>
     </stateVariable>
@@ -195,6 +199,10 @@
       <dataType>boolean</dataType>
     </stateVariable>
     <stateVariable sendEvents="yes">
+      <name>EthLink</name>
+      <dataType>boolean</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
       <name>ConfigMode</name>
       <dataType>string</dataType>
     </stateVariable>
@@ -232,6 +240,31 @@
     </stateVariable>
     <stateVariable sendEvents="no">
       <name>KeepGrouped</name>
+      <dataType>boolean</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="no">
+      <name>HTForwardEnabled</name>
+      <dataType>boolean</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="no">
+      <name>A_ARG_TYPE_RoomDetectionChirpChannel</name>
+      <dataType>ui2</dataType>
+      <allowedValueRange>
+        <minimum>0</minimum>
+        <maximum>7</maximum>
+        <step>1</step>
+      </allowedValueRange>
+    </stateVariable>
+    <stateVariable sendEvents="no">
+      <name>A_ARG_TYPE_RoomDetectionDurationMilliseconds</name>
+      <dataType>ui4</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="no">
+      <name>A_ARG_TYPE_RoomDetectionPlayId</name>
+      <dataType>ui4</dataType>
+    </stateVariable>
+    <stateVariable sendEvents="no">
+      <name>A_ARG_TYPE_RoomDetectionChirpIfPlayingSwappableAudio</name>
       <dataType>boolean</dataType>
     </stateVariable>
   </serviceStateTable>
@@ -273,8 +306,8 @@
           <name>ChannelMapSet</name>
           <direction>in</direction>
           <relatedStateVariable>ChannelMapSet</relatedStateVariable>
-           </argument>
-           <argument>
+        </argument>
+        <argument>
           <name>KeepGrouped</name>
           <direction>in</direction>
           <relatedStateVariable>KeepGrouped</relatedStateVariable>
@@ -319,6 +352,11 @@
           <direction>in</direction>
           <relatedStateVariable>Configuration</relatedStateVariable>
         </argument>
+        <argument>
+          <name>DesiredTargetRoomName</name>
+          <direction>in</direction>
+          <relatedStateVariable>TargetRoomName</relatedStateVariable>
+        </argument>
       </argumentList>
     </action>
     <action>
@@ -338,6 +376,11 @@
           <name>CurrentConfiguration</name>
           <direction>out</direction>
           <relatedStateVariable>Configuration</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>CurrentTargetRoomName</name>
+          <direction>out</direction>
+          <relatedStateVariable>TargetRoomName</relatedStateVariable>
         </argument>
       </argumentList>
     </action>
@@ -587,6 +630,16 @@
       </argumentList>
     </action>
     <action>
+      <name>GetHTForwardState</name>
+      <argumentList>
+        <argument>
+          <name>IsHTForwardEnabled</name>
+          <direction>out</direction>
+          <relatedStateVariable>HTForwardEnabled</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
       <name>SetButtonLockState</name>
       <argumentList>
         <argument>
@@ -603,6 +656,41 @@
           <name>CurrentButtonLockState</name>
           <direction>out</direction>
           <relatedStateVariable>ButtonLockState</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>RoomDetectionStartChirping</name>
+      <argumentList>
+        <argument>
+          <name>Channel</name>
+          <direction>in</direction>
+          <relatedStateVariable>A_ARG_TYPE_RoomDetectionChirpChannel</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>DurationMilliseconds</name>
+          <direction>in</direction>
+          <relatedStateVariable>A_ARG_TYPE_RoomDetectionDurationMilliseconds</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>PlayId</name>
+          <direction>out</direction>
+          <relatedStateVariable>A_ARG_TYPE_RoomDetectionPlayId</relatedStateVariable>
+        </argument>
+        <argument>
+          <name>ChirpIfPlayingSwappableAudio</name>
+          <direction>in</direction>
+          <relatedStateVariable>A_ARG_TYPE_RoomDetectionChirpIfPlayingSwappableAudio</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>RoomDetectionStopChirping</name>
+      <argumentList>
+        <argument>
+          <name>PlayId</name>
+          <direction>in</direction>
+          <relatedStateVariable>A_ARG_TYPE_RoomDetectionPlayId</relatedStateVariable>
         </argument>
       </argumentList>
     </action>

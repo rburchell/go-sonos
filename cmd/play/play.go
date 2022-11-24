@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -14,7 +15,10 @@ func main() {
 		return
 	}
 
-	zp, err := sonos.FindRoom(os.Args[1], 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	zp, err := sonos.FindRoom(ctx, os.Args[1])
 	if err != nil {
 		fmt.Printf("FindRoom Error: %v\n", err)
 		return

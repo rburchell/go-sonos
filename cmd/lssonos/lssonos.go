@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -8,6 +9,9 @@ import (
 )
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	son, err := sonos.NewSonos()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -15,14 +19,14 @@ func main() {
 	}
 	defer son.Close()
 
-	found, _ := son.Search()
-	to := time.After(10 * time.Second)
-	for {
-		select {
-		case <-to:
-			return
-		case zp := <-found:
-			fmt.Printf("%s\t%s\t%s", zp.RoomName(), zp.ModelName(), zp.SerialNum())
-		}
+	f := func(sonos *sonos.Sonos, player *sonos.ZonePlayer) {
+		fmt.Printf("%s\t%s\t%s\n", player.RoomName(), player.ModelName(), player.SerialNum())
 	}
+
+	err = son.Search(ctx, f)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+
+	<-ctx.Done()
 }

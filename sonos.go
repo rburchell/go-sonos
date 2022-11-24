@@ -2,50 +2,64 @@ package sonos
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
-	"time"
-)
-
-const (
-	mx        = 5
-	st        = "urn:schemas-upnp-org:device:ZonePlayer:1"
-	bcastaddr = "239.255.255.250:1900"
+	"sync"
 )
 
 type Sonos struct {
-	// Context Context
-	listenSocket *net.UDPConn
-	udpReader    *bufio.Reader
-	found        chan *ZonePlayer
+	ctx context.Context
+
+	udpListener *net.UDPConn
+	tcpListener net.Listener
+
+	zonePlayers sync.Map
 }
 
+type FoundZonePlayer func(*Sonos, *ZonePlayer)
+
 func NewSonos() (*Sonos, error) {
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: []byte{0, 0, 0, 0}, Port: 0, Zone: ""})
+	// Create listener for M-SEARCH
+	udpListener, err := net.ListenUDP("udp", &net.UDPAddr{IP: []byte{0, 0, 0, 0}, Port: 0, Zone: ""})
 	if err != nil {
 		return nil, err
 	}
 
-	s := Sonos{
-		listenSocket: conn,
-		udpReader:    bufio.NewReader(conn),
-		found:        make(chan *ZonePlayer),
+	// create listener for events
+	tcpListener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		return nil, err
 	}
 
-	return &s, nil
+	s := &Sonos{
+		udpListener: udpListener,
+		tcpListener: tcpListener,
+	}
+
+	go func() {
+		http.Serve(s.tcpListener, s)
+	}()
+
+	return s, nil
 }
 
 func (s *Sonos) Close() {
-	s.listenSocket.Close()
+	s.udpListener.Close()
+	s.tcpListener.Close()
 }
 
-func (s *Sonos) Search() (chan *ZonePlayer, error) {
-	go func() {
+func (s *Sonos) Search(ctx context.Context, foundFn FoundZonePlayer) error {
+	go func(ctx context.Context) {
 		for {
-			response, err := http.ReadResponse(s.udpReader, nil)
+			if ctx.Err() != nil {
+				break
+			}
+			response, err := http.ReadResponse(bufio.NewReader(s.udpListener), nil)
 			if err != nil {
 				continue
 			}
@@ -59,42 +73,173 @@ func (s *Sonos) Search() (chan *ZonePlayer, error) {
 				continue
 			}
 			if zp.IsCoordinator() {
-				s.found <- zp
+				fmt.Printf("Found a coordinator!\n")
+				zp, loaded := s.zonePlayers.LoadOrStore(zp.SerialNum(), zp)
+				if !loaded {
+					foundFn(s, zp.(*ZonePlayer))
+				}
 			}
 		}
-	}()
+	}(ctx)
 
+	// https://svrooij.io/sonos-api-docs/sonos-communication.html#auto-discovery
 	// MX should be set to use timeout value in integer seconds
-	pkt := []byte(fmt.Sprintf("M-SEARCH * HTTP/1.1\r\nHOST: %s\r\nMAN: \"ssdp:discover\"\r\nMX: %d\r\nST: %s\r\n\r\n", bcastaddr, mx, st))
-	bcast, err := net.ResolveUDPAddr("udp", bcastaddr)
-	if err != nil {
-		return nil, err
+	pkt := []byte("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: urn:schemas-upnp-org:device:ZonePlayer:1\r\n\r\n")
+	for _, bcastaddr := range []string{"239.255.255.250:1900", "255.255.255.255:1900"} {
+		bcast, err := net.ResolveUDPAddr("udp", bcastaddr)
+		if err != nil {
+			return err
+		}
+		_, err = s.udpListener.WriteTo(pkt, bcast)
+		if err != nil {
+			return err
+		}
 	}
-	_, err = s.listenSocket.WriteTo(pkt, bcast)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.found, nil
+	return nil
 }
 
-func FindRoom(room string, timeout time.Duration) (*ZonePlayer, error) {
-	son, err := NewSonos()
+func (s *Sonos) Register(zp *ZonePlayer) error {
+	if zp.IsCoordinator() {
+		_, loaded := s.zonePlayers.LoadOrStore(zp.SerialNum(), zp)
+		if loaded {
+			return fmt.Errorf("ZonePlayer already registered")
+		}
+		return nil
+	}
+	return fmt.Errorf("ZonePlayer is not coordinator")
+}
+
+func (s *Sonos) Subscribe(ctx context.Context, zp *ZonePlayer, service SonosService) error {
+	conn, err := net.Dial("tcp", service.EventEndpoint().Host)
+	host := fmt.Sprintf("%s:%d", conn.LocalAddr().(*net.TCPAddr).IP.String(), s.tcpListener.Addr().(*net.TCPAddr).Port)
+
+	calbackUrl := url.URL{
+		Scheme:   "http",
+		Host:     host,
+		RawQuery: "sn=" + zp.SerialNum(),
+		Path:     service.EventEndpoint().Path,
+	}
+
+	var req string
+	req += fmt.Sprintf("SUBSCRIBE %s HTTP/1.0\r\n", service.EventEndpoint().String())
+	req += fmt.Sprintf("HOST: %s\r\n", service.EventEndpoint().Host)
+	req += fmt.Sprintf("USER-AGENT: Unknown UPnP/1.0 sonos.szatmary.com.github/2.0\r\n")
+	req += fmt.Sprintf("CALLBACK: <%s>\r\n", calbackUrl.String())
+	req += fmt.Sprintf("NT: upnp:event\r\n")
+	req += fmt.Sprintf("TIMEOUT: Second-300\r\n")
+	if err != nil {
+		return err
+	}
+	// fmt.Printf("%v\n", req)
+	fmt.Fprintf(conn, req+"\r\n")
+	res, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	fmt.Printf("%v\n", body)
+	if 200 != res.StatusCode {
+		fmt.Printf("%v\n", res)
+		return errors.New(string(body))
+	}
+	return nil
+}
+
+func (s *Sonos) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	defer request.Body.Close()
+
+	query := request.URL.Query()
+	sn, ok := query["sn"]
+	if !ok {
+		fmt.Printf("query does not have sn")
+		response.WriteHeader(404)
+		return
+	}
+
+	p, ok := s.zonePlayers.Load(sn[0])
+	if !ok {
+		fmt.Printf("ZonePlayer %q not found", sn[0])
+		response.WriteHeader(404)
+		return
+	}
+	zonePlayer := p.(*ZonePlayer)
+	data, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		response.WriteHeader(500)
+		return
+	}
+
+	var events []interface{}
+
+	if request.URL.Path == zonePlayer.AlarmClock.EventEndpoint().Path {
+		events = zonePlayer.AlarmClock.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.AVTransport.EventEndpoint().Path {
+		events = zonePlayer.AVTransport.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.ConnectionManager.EventEndpoint().Path {
+		events = zonePlayer.ConnectionManager.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.ContentDirectory.EventEndpoint().Path {
+		events = zonePlayer.ContentDirectory.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.DeviceProperties.EventEndpoint().Path {
+		events = zonePlayer.DeviceProperties.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.GroupManagement.EventEndpoint().Path {
+		events = zonePlayer.GroupManagement.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.GroupRenderingControl.EventEndpoint().Path {
+		events = zonePlayer.GroupRenderingControl.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.MusicServices.EventEndpoint().Path {
+		events = zonePlayer.MusicServices.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.Queue.EventEndpoint().Path {
+		events = zonePlayer.Queue.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.RenderingControl.EventEndpoint().Path {
+		events = zonePlayer.RenderingControl.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.SystemProperties.EventEndpoint().Path {
+		events = zonePlayer.SystemProperties.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.VirtualLineIn.EventEndpoint().Path {
+		events = zonePlayer.VirtualLineIn.ParseEvent(data)
+	}
+	if request.URL.Path == zonePlayer.ZoneGroupTopology.EventEndpoint().Path {
+		events = zonePlayer.ZoneGroupTopology.ParseEvent(data)
+	}
+
+	for _, evt := range events {
+		zonePlayer.Event(evt)
+	}
+	response.WriteHeader(200)
+}
+
+func FindRoom(ctx context.Context, room string) (*ZonePlayer, error) {
+	c := make(chan *ZonePlayer)
+	defer close(c)
+
+	s, err := NewSonos()
 	if err != nil {
 		return nil, err
 	}
-	defer son.Close()
+	defer s.Close()
 
-	found, _ := son.Search()
-	to := time.After(timeout)
+	s.Search(ctx, func(s *Sonos, zp *ZonePlayer) {
+		if zp.RoomName() == room {
+			c <- zp
+		}
+	})
+
 	for {
 		select {
-		case <-to:
+		case <-ctx.Done():
 			return nil, errors.New("timeout")
-		case zp := <-found:
-			if zp.RoomName() == room {
-				return zp, nil
-			}
+		case zp := <-c:
+			return zp, nil
 		}
 	}
 }
