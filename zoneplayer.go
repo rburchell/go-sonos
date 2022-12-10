@@ -331,6 +331,11 @@ func (z *ZonePlayer) Play() error {
 	return err
 }
 
+func (z *ZonePlayer) Stop() error {
+	_, err := z.AVTransport.Stop(&avt.StopArgs{})
+	return err
+}
+
 func (z *ZonePlayer) SetAVTransportURI(url string) error {
 	_, err := z.AVTransport.SetAVTransportURI(&avt.SetAVTransportURIArgs{
 		CurrentURI: url,
