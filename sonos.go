@@ -73,7 +73,6 @@ func (s *Sonos) Search(ctx context.Context, foundFn FoundZonePlayer) error {
 				continue
 			}
 			if zp.IsCoordinator() {
-				fmt.Printf("Found a coordinator!\n")
 				zp, loaded := s.zonePlayers.LoadOrStore(zp.SerialNum(), zp)
 				if !loaded {
 					foundFn(s, zp.(*ZonePlayer))
@@ -130,17 +129,13 @@ func (s *Sonos) Subscribe(ctx context.Context, zp *ZonePlayer, service SonosServ
 	if err != nil {
 		return err
 	}
-	// fmt.Printf("%v\n", req)
-	fmt.Fprintf(conn, req+"\r\n")
 	res, err := http.ReadResponse(bufio.NewReader(conn), nil)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
-	fmt.Printf("%v\n", body)
 	if 200 != res.StatusCode {
-		fmt.Printf("%v\n", res)
 		return errors.New(string(body))
 	}
 	return nil
@@ -152,14 +147,12 @@ func (s *Sonos) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	query := request.URL.Query()
 	sn, ok := query["sn"]
 	if !ok {
-		fmt.Printf("query does not have sn")
 		response.WriteHeader(404)
 		return
 	}
 
 	p, ok := s.zonePlayers.Load(sn[0])
 	if !ok {
-		fmt.Printf("ZonePlayer %q not found", sn[0])
 		response.WriteHeader(404)
 		return
 	}
