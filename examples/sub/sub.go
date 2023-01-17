@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -9,8 +10,16 @@ import (
 	"github.com/caglar10ur/sonos"
 )
 
+var (
+	room = flag.String("room", "Living Room", "Room name")
+)
+
+func init() {
+	flag.Parse()
+}
+
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	son, err := sonos.NewSonos()
@@ -20,39 +29,33 @@ func main() {
 	}
 	defer son.Close()
 
-	ips := []string{}
-	for i := 13; i <= 18; i++ {
-		ips = append(ips, fmt.Sprintf("192.168.10.%d", i))
+	zp, err := son.FindRoom(ctx, *room)
+	if err != nil {
+		log.Fatalf("%s", err)
 	}
 
-	var zps []*sonos.ZonePlayer
-	for _, ip := range ips {
-		u, err := sonos.FromEndpoint(ip)
-		if err != nil {
-			log.Fatalf("%s", err)
-		}
-
-		zp, err := sonos.NewZonePlayer(
-			sonos.WithLocation(u),
-		)
-		if err != nil {
-			log.Fatalf("%s", err)
-		}
-		fmt.Printf("Trying %s\t%s\t%s (coordinator %t)\n", zp.RoomName(), zp.ModelName(), zp.SerialNum(), zp.IsCoordinator())
-
-		if err := son.Register(zp); err != nil {
-			log.Printf("%s", err)
-		}
-
-		if zp.IsCoordinator() {
-			zps = append(zps, zp)
-		}
-	}
-
-	for _, zp := range zps {
+	if zp.IsCoordinator() {
 		fmt.Printf("Connected to %s\t%s\t%s (coordinator %t)\n", zp.RoomName(), zp.ModelName(), zp.SerialNum(), zp.IsCoordinator())
 
-		son.Subscribe(ctx, zp, zp.AVTransport)
+		sid, err := son.Subscribe(ctx, zp, zp.AVTransport)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
+
+		time.Sleep(10 * time.Second)
+
+		err = son.Renew(ctx, zp, zp.AVTransport, sid)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
+
+		time.Sleep(10 * time.Second)
+
+		err = son.Unsubscribe(ctx, zp, zp.AVTransport, sid)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
 	}
+
 	<-ctx.Done()
 }

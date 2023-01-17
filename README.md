@@ -1,6 +1,11 @@
 # Credits
 
-Forked from https://github.com/szatmary/sonos so all credit goes to them. There are few changes have been made mostly around the structure of the generated code.
+Forked from https://github.com/szatmary/sonos.
+
+# Changes
+
+There are few changes have been made mostly around the structure of the generated code and how it is consumed.
+There are also improvements to the event lifecycle (subscribe/renew/unsubscribe) with some other miscellaneous changes.
 
 # Services
 
@@ -10,5 +15,5 @@ The service implimentations are automatically generated from the service definit
 
 # More
 
-Please see https://svrooij.io/sonos-api-docs/sonos-communication.html and https://svrooij.io/sonos-api-docs/services/
+Please see https://svrooij.io/sonos-api-docs/sonos-communication.html and https://svrooij.io/sonos-api-docs/services/ for Sonos API and http://upnp.org/ for UPnP.
 

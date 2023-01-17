@@ -326,7 +326,7 @@ func (z *ZonePlayer) SetVolume(desiredVolume int) error {
 
 func (z *ZonePlayer) Play() error {
 	_, err := z.AVTransport.Play(&avt.PlayArgs{
-		Speed: "1.0",
+		Speed: "1",
 	})
 	return err
 }
@@ -345,6 +345,15 @@ func (z *ZonePlayer) SetAVTransportURI(url string) error {
 
 func (zp *ZonePlayer) Event(evt interface{}) {
 	switch e := evt.(type) {
+	case avt.LastChange:
+		var levt AVTransportLastChange
+		err := xml.Unmarshal([]byte(e), &levt)
+		if err != nil {
+			fmt.Printf("Unmarshal failure: %s", err)
+			return
+		}
+		fmt.Printf("AVTransport/LastChangeEvent: %s\n", levt.String())
+
 	default:
 		fmt.Printf("Unhandeld event %T: %q\n", e, e)
 	}

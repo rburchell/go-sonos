@@ -13,8 +13,6 @@ import (
 )
 
 type Sonos struct {
-	ctx context.Context
-
 	udpListener *net.UDPConn
 	tcpListener net.Listener
 
@@ -108,8 +106,13 @@ func (s *Sonos) Register(zp *ZonePlayer) error {
 	return fmt.Errorf("ZonePlayer is not coordinator")
 }
 
-func (s *Sonos) Subscribe(ctx context.Context, zp *ZonePlayer, service SonosService) error {
+func (s *Sonos) Subscribe(ctx context.Context, zp *ZonePlayer, service SonosService) (string, error) {
 	conn, err := net.Dial("tcp", service.EventEndpoint().Host)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
 	host := fmt.Sprintf("%s:%d", conn.LocalAddr().(*net.TCPAddr).IP.String(), s.tcpListener.Addr().(*net.TCPAddr).Port)
 
 	calbackUrl := url.URL{
@@ -119,25 +122,91 @@ func (s *Sonos) Subscribe(ctx context.Context, zp *ZonePlayer, service SonosServ
 		Path:     service.EventEndpoint().Path,
 	}
 
-	var req string
-	req += fmt.Sprintf("SUBSCRIBE %s HTTP/1.0\r\n", service.EventEndpoint().String())
-	req += fmt.Sprintf("HOST: %s\r\n", service.EventEndpoint().Host)
-	req += fmt.Sprintf("USER-AGENT: Unknown UPnP/1.0 sonos.szatmary.com.github/2.0\r\n")
-	req += fmt.Sprintf("CALLBACK: <%s>\r\n", calbackUrl.String())
-	req += fmt.Sprintf("NT: upnp:event\r\n")
-	req += fmt.Sprintf("TIMEOUT: Second-300\r\n")
+	req, err := http.NewRequestWithContext(ctx, "SUBSCRIBE", service.EventEndpoint().String(), nil)
 	if err != nil {
-		return err
+		return "", err
 	}
-	res, err := http.ReadResponse(bufio.NewReader(conn), nil)
+
+	req.Header.Add("HOST", service.EventEndpoint().Host)
+	req.Header.Add("CALLBACK", "<"+calbackUrl.String()+">")
+	req.Header.Add("NT", "upnp:event")
+	req.Header.Add("TIMEOUT", "Second-300")
+
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
+
 	defer res.Body.Close()
+
 	body, err := ioutil.ReadAll(res.Body)
-	if 200 != res.StatusCode {
+
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New(string(body))
+	}
+
+	return res.Header.Get("sid"), nil
+}
+
+func (s *Sonos) Renew(ctx context.Context, zp *ZonePlayer, service SonosService, sid string) error {
+	req, err := http.NewRequestWithContext(ctx, "SUBSCRIBE", service.EventEndpoint().String(), nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("HOST", service.EventEndpoint().Host)
+	req.Header.Add("SID", sid)
+	req.Header.Add("TIMEOUT", "Second-300")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
 		return errors.New(string(body))
 	}
+
+	return nil
+}
+func (s *Sonos) Unsubscribe(ctx context.Context, zp *ZonePlayer, service SonosService, sid string) error {
+	req, err := http.NewRequestWithContext(ctx, "UNSUBSCRIBE", service.EventEndpoint().String(), nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("HOST", service.EventEndpoint().Host)
+	req.Header.Add("SID", sid)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New(string(body))
+	}
+
 	return nil
 }
 
@@ -147,19 +216,19 @@ func (s *Sonos) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	query := request.URL.Query()
 	sn, ok := query["sn"]
 	if !ok {
-		response.WriteHeader(404)
+		response.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	p, ok := s.zonePlayers.Load(sn[0])
 	if !ok {
-		response.WriteHeader(404)
+		response.WriteHeader(http.StatusNotFound)
 		return
 	}
 	zonePlayer := p.(*ZonePlayer)
 	data, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		response.WriteHeader(500)
+		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -208,18 +277,12 @@ func (s *Sonos) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	for _, evt := range events {
 		zonePlayer.Event(evt)
 	}
-	response.WriteHeader(200)
+	response.WriteHeader(http.StatusOK)
 }
 
-func FindRoom(ctx context.Context, room string) (*ZonePlayer, error) {
+func (s *Sonos) FindRoom(ctx context.Context, room string) (*ZonePlayer, error) {
 	c := make(chan *ZonePlayer)
 	defer close(c)
-
-	s, err := NewSonos()
-	if err != nil {
-		return nil, err
-	}
-	defer s.Close()
 
 	s.Search(ctx, func(s *Sonos, zp *ZonePlayer) {
 		if zp.RoomName() == room {
