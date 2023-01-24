@@ -18,7 +18,14 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 
-	zp, err := sonos.FindRoom(ctx, os.Args[1])
+	son, err := sonos.NewSonos()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	defer son.Close()
+
+	zp, err := son.FindRoom(ctx, os.Args[1])
 	if err != nil {
 		fmt.Printf("FindRoom Error: %v\n", err)
 		return
